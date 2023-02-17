@@ -54,14 +54,14 @@ def inside_screen (perso_rect, ECRAN_LARGE, ECRAN_HAUT):
         return False
     return True
 
-def moving_ok (m):
-    for  in all_wall_rectangle:
-        if collision_point (all_wall_rectangle, futur_perso_rectangle):
+def moving_ok (wall_rects, perso_futur):
+    for rectangle in wall_rects:
+        if collision_point (rectangle, perso_futur):
             return False
-    if not inside_screen (perso_rect, ECRAN_LARGE, ECRAN_HAUT):
+    if not inside_screen (perso_futur, ECRAN_LARGEUR, ECRAN_HAUTEUR):
         return False
     return True
-# renvoyer true quand collision point = false  and inside screen = true
+# renvoyer true quand : collision point = false  and inside screen = true
 
 
 all_wall_rectangle = []
@@ -76,10 +76,9 @@ while continuer:
     for wall in WALL_POS:
         xmur = wall [0]
         ymur = wall [1] 
-
-        wall_rectangle = (xmur,ymur, MUR_LARGEUR, MUR_HAUTEUR)
-
+        
         all_wall_rectangle.append ((xmur, ymur, MUR_LARGEUR, MUR_HAUTEUR))
+
 
         
     pygame.display.flip()
@@ -107,7 +106,7 @@ while continuer:
             futur_y_perso = yperso + vitesse_y_perso
             futur_perso_rectangle = (futur_x_perso,futur_y_perso,PERSO_LARGEUR,PERSO_HAUTEUR)
                
-            if moving_ok for walls in all_wall_rectangle :
+            if moving_ok (all_wall_rectangle,futur_perso_rectangle):
                             xperso = futur_x_perso
                             yperso = futur_y_perso
 
