@@ -1,21 +1,21 @@
-import pygame, sys
+import pygame, sys, random
  
 pygame.init()
  
-ECRAN_LARGEUR = 320
-ECRAN_HAUTEUR = 200
+ECRAN_LARGEUR = 800
+ECRAN_HAUTEUR = 600
 SCREEN = pygame.display.set_mode((ECRAN_LARGEUR, ECRAN_HAUTEUR))
  
 character_image = pygame.image.load("perso.png").convert_alpha()
-xperso = 100
-yperso = 100
+xperso = 10
+yperso = 10
 SCREEN.blit(character_image, (xperso, yperso))
  
 PERSO_HAUTEUR = character_image.get_height()
 PERSO_LARGEUR = character_image.get_width()
 PERSO_VITESSE = 10
 
-WALL_POS = [(10, 10), (20, 10), (30, 10), (20, 20), (50, 50), (20, 50), (100, 50), (150, 150), (90, 60), (100, 150)]
+WALL_POS = [(random.randint(50, ECRAN_LARGEUR), random.randint(50, ECRAN_HAUTEUR)) for i in range(100)]
 
 wall_image = pygame.image.load("wall.jpeg") .convert_alpha ()
 MUR_HAUTEUR = wall_image.get_height()
