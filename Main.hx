@@ -8,15 +8,12 @@ class Main {
 	static var perso:Sprite;
 	static var ECRAN_LARGE:Int = 800;
 	static var ECRAN_HAUT:Int = 600;
-	static var PERSO_VITESSE:Int = 10;
+	static var PERSO_VITESSE:Int = 3;
 	static var WALL_POS = [];
 	static var all_wall_rectangle:Array<Rectangle> = [];
 
 	static var vitesse_x_perso:Int = 0;
 	static var vitesse_y_perso:Int = 0;
-
-	// static var futur_x_perso = (perso.x + vitesse_x_perso);
-	// static var futur_y_perso = (perso.y + vitesse_y_perso);
 
 	static function main() {
 		trace('Coucou !');
@@ -64,6 +61,7 @@ class Main {
 	}
 
 	static function collision_point(wall_rect:Rectangle, perso_rect:Rectangle) {
+		trace((wall_rect.width) + ' mur largur ');
 		if ((perso_rect.x + perso_rect.width) < wall_rect.x) { // a gauche du mur
 			return false;
 		}
@@ -94,35 +92,27 @@ class Main {
 
 	static function update(f:Float) {
 		if (KeyboardManager.isDown(KeyboardManager.ARROW_RIGHT)) {
-			perso.x = PERSO_VITESSE;
-			// vitesse_x_perso = PERSO_VITESSE;
-		}
-		if (KeyboardManager.isDown(KeyboardManager.ARROW_LEFT)) {
-			perso.x = -PERSO_VITESSE;
-			// vitesse_x_perso = -PERSO_VITESSE;
+			vitesse_x_perso = PERSO_VITESSE;
+		} else if (KeyboardManager.isDown(KeyboardManager.ARROW_LEFT)) {
+			vitesse_x_perso = -PERSO_VITESSE;
+		} else {
+			vitesse_x_perso = 0;
 		}
 		if (KeyboardManager.isDown(KeyboardManager.ARROW_DOWN)) {
 			vitesse_y_perso = PERSO_VITESSE;
-		}
-		if (KeyboardManager.isDown(KeyboardManager.ARROW_UP)) {
+		} else if (KeyboardManager.isDown(KeyboardManager.ARROW_UP)) {
 			vitesse_y_perso = -PERSO_VITESSE;
+		} else {
+			vitesse_y_perso = 0;
 		}
+		var futur_x_perso = perso.x + vitesse_x_perso;
+		var futur_y_perso = perso.y + vitesse_y_perso;
+		var futur_perso_rectangle:Rectangle = new Rectangle(futur_x_perso, futur_y_perso, perso.width, perso.height);
 
-		// perso.x = futur_x_perso;
-		// perso.y = futur_y_perso;
-		// var futur_perso_rectangle:Rectangle = new Rectangle(futur_x_perso, futur_y_perso, perso.width, perso.height);
-
-		// if (inside_screen(perso.getBounds())) {
-		// perso.x = perso.x + 5;
-
-		// if (moving_ok(all_wall_rectangle, futur_perso_retangle)) {
-		// perso_rect.x = futur_x_perso
-		/*perso_rect.y = futur_y_perso
-			}
-
-			futur_x_perso = xperso + vitesse_x_perso
-			futur_y_perso = yperso + vitesse_y_perso
-			futur_perso_rectangle = (futur_x_perso, futur_y_perso, perso_rect.width, perso_rect.height) */
+		if (moving_ok(all_wall_rectangle, futur_perso_rectangle)) {
+			perso.x = futur_x_perso;
+			perso.y = futur_y_perso;
+		}
 
 		Browser.window.requestAnimationFrame(update);
 	}
