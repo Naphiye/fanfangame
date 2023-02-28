@@ -63,7 +63,6 @@ def moving_ok (wall_rects, perso_futur):
     return True
 # renvoyer true quand : collision point = false  and inside screen = true
 
-
 all_wall_rectangle = []
 
 continuer = True
@@ -91,7 +90,7 @@ while continuer:
         elif event.type == pygame.KEYDOWN:
             vitesse_x_perso = 0
             vitesse_y_perso = 0
-             
+
             if event.key == pygame.K_RIGHT:
                vitesse_x_perso = PERSO_VITESSE
             elif event.key == pygame.K_LEFT:
@@ -101,6 +100,21 @@ while continuer:
             elif event.key == pygame.K_DOWN:
                 vitesse_y_perso = PERSO_VITESSE
 
+            pressed = pygame.key.get_pressed()            
+            if pressed [pygame.K_RIGHT]:
+                vitesse_x_perso = PERSO_VITESSE
+                print("RIGHT is pressed")
+                
+            if pressed [pygame.K_LEFT]:
+                print("LEFT is pressed")
+            if pressed [pygame.K_UP]:   
+                print ('UP is pressed')
+            if pressed [pygame.K_DOWN]:
+                print("DOWN is pressed")
+                
+
+
+#if pressed vitesse_x_perso = persso vitesse a chaque 
 
             futur_x_perso = xperso + vitesse_x_perso
             futur_y_perso = yperso + vitesse_y_perso
@@ -110,18 +124,4 @@ while continuer:
                             xperso = futur_x_perso
                             yperso = futur_y_perso
 
-
-            
-        #elif event.type == pygame.KEYUP:
-
-            #moving = pygame.key.get_pressed()
-            #if moving [pygame.K_RIGHT]:
-                #vitesse_x_perso = PERSO_VITESSE
-                #print("right is pressed")
-            #if moving [pygame.K_LEFT]:
-                #print("left is pressed")
-
-#il imprime que quand une autre touche et maintenant en meme temps ...
-
 pygame.quit()
-

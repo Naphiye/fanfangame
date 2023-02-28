@@ -1,0 +1,129 @@
+import pixi.core.math.shapes.Rectangle;
+import pixi.core.sprites.Sprite;
+import js.Browser;
+import pixi.core.Application;
+
+// https://pixijs.download/v5.2.2/docs/index.html
+class Main {
+	static var perso:Sprite;
+	static var ECRAN_LARGE:Int = 800;
+	static var ECRAN_HAUT:Int = 600;
+	static var PERSO_VITESSE:Int = 10;
+	static var WALL_POS = [];
+	static var all_wall_rectangle:Array<Rectangle> = [];
+
+	static var vitesse_x_perso:Int = 0;
+	static var vitesse_y_perso:Int = 0;
+
+	// static var futur_x_perso = (perso.x + vitesse_x_perso);
+	// static var futur_y_perso = (perso.y + vitesse_y_perso);
+
+	static function main() {
+		trace('Coucou !');
+		KeyboardManager.init();
+
+		var app = new Application({backgroundColor: 0x000000});
+		Browser.document.body.appendChild(app.view);
+
+		for (i in 0...50) {
+			WALL_POS.push([Std.random(ECRAN_LARGE), Std.random(ECRAN_HAUT)]);
+		}
+
+		perso = Sprite.from('perso.png');
+		perso.x = 50;
+		perso.y = 50;
+
+		app.stage.addChild(perso);
+
+		for (wall in WALL_POS) {
+			var wallImage = Sprite.from('wall.jpeg');
+			wallImage.x = wall[0];
+			wallImage.y = wall[1];
+			app.stage.addChild(wallImage);
+			all_wall_rectangle.push(wallImage.getBounds());
+		}
+
+		Browser.window.requestAnimationFrame(update);
+	}
+
+	static function inside_screen(perso_rect:Rectangle) {
+		if ((perso_rect.x) < 0) { // a gauche de lecran
+			return false;
+		}
+		if ((perso_rect.x + perso_rect.width) > ECRAN_LARGE) { // a droite de lecran
+			return false;
+		}
+		if ((perso_rect.y) < 0) { // en haut de lecran
+			return false;
+		}
+		if ((perso_rect.y + perso_rect.height) > ECRAN_HAUT) { // en bas de lecran
+			return false;
+		}
+
+		return true;
+	}
+
+	static function collision_point(wall_rect:Rectangle, perso_rect:Rectangle) {
+		if ((perso_rect.x + perso_rect.width) < wall_rect.x) { // a gauche du mur
+			return false;
+		}
+		if (perso_rect.x > (wall_rect.x + wall_rect.width)) { // a droite du mur
+			return false;
+		}
+		if ((perso_rect.y + perso_rect.height) < wall_rect.y) { // en haut du mur
+			return false;
+		}
+		if (perso_rect.y > (wall_rect.y + wall_rect.height)) { // en bas du mur
+			return false;
+		}
+
+		return true;
+	}
+
+	static function moving_ok(wall_rects:Array<Rectangle>, perso_futur:Rectangle) {
+		for (rects in wall_rects) {
+			if (collision_point(rects, perso_futur)) {
+				return false;
+			}
+			if (!inside_screen(perso_futur)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	static function update(f:Float) {
+		if (KeyboardManager.isDown(KeyboardManager.ARROW_RIGHT)) {
+			perso.x = PERSO_VITESSE;
+			// vitesse_x_perso = PERSO_VITESSE;
+		}
+		if (KeyboardManager.isDown(KeyboardManager.ARROW_LEFT)) {
+			perso.x = -PERSO_VITESSE;
+			// vitesse_x_perso = -PERSO_VITESSE;
+		}
+		if (KeyboardManager.isDown(KeyboardManager.ARROW_DOWN)) {
+			vitesse_y_perso = PERSO_VITESSE;
+		}
+		if (KeyboardManager.isDown(KeyboardManager.ARROW_UP)) {
+			vitesse_y_perso = -PERSO_VITESSE;
+		}
+
+		// perso.x = futur_x_perso;
+		// perso.y = futur_y_perso;
+		// var futur_perso_rectangle:Rectangle = new Rectangle(futur_x_perso, futur_y_perso, perso.width, perso.height);
+
+		// if (inside_screen(perso.getBounds())) {
+		// perso.x = perso.x + 5;
+
+		// if (moving_ok(all_wall_rectangle, futur_perso_retangle)) {
+		// perso_rect.x = futur_x_perso
+		/*perso_rect.y = futur_y_perso
+			}
+
+			futur_x_perso = xperso + vitesse_x_perso
+			futur_y_perso = yperso + vitesse_y_perso
+			futur_perso_rectangle = (futur_x_perso, futur_y_perso, perso_rect.width, perso_rect.height) */
+
+		Browser.window.requestAnimationFrame(update);
+	}
+}
