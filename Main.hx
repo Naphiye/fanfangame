@@ -1,3 +1,5 @@
+import js.lib.Promise;
+import pixi.core.textures.Texture;
 import pixi.core.math.shapes.Rectangle;
 import pixi.core.sprites.Sprite;
 import js.Browser;
@@ -16,7 +18,14 @@ class Main {
 	static var vitesse_y_perso:Int = 0;
 
 	static function main() {
-		trace('Coucou !');
+		// Preload
+		var persoProm = Texture.fromURL('perso.png');
+		var murProm = Texture.fromURL('wall.jpeg');
+
+		Promise.all([persoProm, murProm]).then(startGame);
+	}
+
+	static function startGame(_) {
 		KeyboardManager.init();
 
 		var app = new Application({backgroundColor: 0x000000});
@@ -61,7 +70,6 @@ class Main {
 	}
 
 	static function collision_point(wall_rect:Rectangle, perso_rect:Rectangle) {
-		trace((wall_rect.width) + ' mur largur ');
 		if ((perso_rect.x + perso_rect.width) < wall_rect.x) { // a gauche du mur
 			return false;
 		}

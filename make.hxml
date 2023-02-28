@@ -1,4 +1,5 @@
 -main Main
 -js game.js
 -lib pixijs
+-cp externs
 -debug
