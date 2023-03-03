@@ -8,7 +8,23 @@ fswatch -o Main.hx | xargs -n1 -I{} haxe make.hxml
 
 
     
+	static function Wall_pop(WallImage:Rectangle, perso:Rectangle) {
+		if ((WallImage.x + WallImage.width) < perso.x) // mur a gauche du personnage
+		{
+			return false;
+		}
+		if (WallImage.x < perso.x) // mur a gauche du personnage
+		{
+			return false;
+		} if ((WallImage.y + WallImage.height != perso.y))
+		{
+			return false
+		}
 
+	else {
+		return true;
+	}
+	}
 
             
 
