@@ -46,7 +46,6 @@ class Main {
 			wallImage.x = wall[0];
 			wallImage.y = wall[1];
 			var wall_rectangle:Rectangle = new Rectangle(wallImage.x, wallImage.y, wallImage.width, wallImage.height);
-
 			if (!collision_point(wall_rectangle, perso_rectangle)) {
 				app.stage.addChild(wallImage);
 
