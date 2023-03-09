@@ -9,11 +9,11 @@ import pixi.core.Application;
 // https://pixijs.download/v5.2.2/docs/index.html
 class Main {
 	static var perso:Sprite;
-	static var wallImage:Sprite;
+
 	static var ECRAN_LARGE:Int = 800;
 	static var ECRAN_HAUT:Int = 600;
-	static var PERSO_VITESSE:Int = 3;
-	static var WALL_POS = [];
+	static var PERSO_VITESSE:Int = 10;
+	static var WALL_POS:Array<Array<Int>> = [];
 	static var all_wall_rectangle:Array<Rectangle> = [];
 	static var vitesse_x_perso:Int = 0;
 	static var vitesse_y_perso:Int = 0;
@@ -38,21 +38,38 @@ class Main {
 		var perso_rectangle:Rectangle = new Rectangle(perso.x, perso.y, perso.width, perso.height);
 		app.stage.addChild(perso);
 
-		for (i in 0...50) {
-			WALL_POS.push([Std.random(ECRAN_LARGE), Std.random(ECRAN_HAUT)]);
+		var wall_image = Sprite.from('wall.jpeg');
+
+		for (i in 0...200) {
+			var position = [Std.random(ECRAN_LARGE), Std.random(ECRAN_HAUT)];
+			if (can_place_wall(position, WALL_POS, wall_image.width, wall_image.height)) {
+				WALL_POS.push(position);
+			}
 		}
 		for (wall in WALL_POS) {
-			wallImage = Sprite.from('wall.jpeg');
-			wallImage.x = wall[0];
-			wallImage.y = wall[1];
-			var wall_rectangle:Rectangle = new Rectangle(wallImage.x, wallImage.y, wallImage.width, wallImage.height);
-			if (!collision_point(wall_rectangle, perso_rectangle)) {
-				app.stage.addChild(wallImage);
+			wall_image = Sprite.from('wall.jpeg');
+			wall_image.x = wall[0];
+			wall_image.y = wall[1];
+			var wall_rectangle:Rectangle = new Rectangle(wall_image.x, wall_image.y, wall_image.width, wall_image.height);
 
-				all_wall_rectangle.push(wallImage.getBounds());
+			if (!collision_point(wall_rectangle, perso_rectangle)) {
+				app.stage.addChild(wall_image);
+
+				all_wall_rectangle.push(wall_image.getBounds());
 			}
 		}
 		Browser.window.requestAnimationFrame(update);
+	}
+
+	static function can_place_wall(wall_position:Array<Int>, walls_already_placed:Array<Array<Int>>, wall_width:Float, wall_height:Float) {
+		var wall_position_rect:Rectangle = new Rectangle(wall_position[0], wall_position[1], wall_width, wall_height);
+		for (walls in walls_already_placed) {
+			var wall_already_placed_rect:Rectangle = new Rectangle(walls[0], walls[1], wall_width, wall_height);
+			if (collision_point(wall_position_rect, wall_already_placed_rect)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	static function inside_screen(perso_rect:Rectangle) {
@@ -102,13 +119,14 @@ class Main {
 	}
 
 	static function update(f:Float) {
-		if (KeyboardManager.isDown(KeyboardManager.ARROW_RIGHT)) {
-			vitesse_x_perso = PERSO_VITESSE;
-		} else if (KeyboardManager.isDown(KeyboardManager.ARROW_LEFT)) {
+		if (KeyboardManager.isDown(KeyboardManager.ARROW_LEFT)) {
 			vitesse_x_perso = -PERSO_VITESSE;
+		} else if (KeyboardManager.isDown(KeyboardManager.ARROW_RIGHT)) {
+			vitesse_x_perso = PERSO_VITESSE;
 		} else {
 			vitesse_x_perso = 0;
 		}
+
 		if (KeyboardManager.isDown(KeyboardManager.ARROW_DOWN)) {
 			vitesse_y_perso = PERSO_VITESSE;
 		} else if (KeyboardManager.isDown(KeyboardManager.ARROW_UP)) {
@@ -123,6 +141,22 @@ class Main {
 		if (moving_ok(all_wall_rectangle, futur_perso_rectangle)) {
 			perso.x = futur_x_perso;
 			perso.y = futur_y_perso;
+		} else {
+			// déplacement diagonale pas possible
+			if (vitesse_x_perso != 0 && vitesse_y_perso != 0) {
+				// déplacement diagonale
+
+				// est ce que je peux me déplacer à l'horizontale
+				var futur_perso_rectangle_horizontale:Rectangle = new Rectangle(futur_x_perso, perso.y, perso.width, perso.height);
+				var futur_perso_rectangle_verticale:Rectangle = new Rectangle(perso.x, futur_y_perso, perso.width, perso.height);
+				if (moving_ok(all_wall_rectangle, futur_perso_rectangle_horizontale)) {
+					perso.x = futur_x_perso;
+				}
+				// sinon est ce que je peux me deplacer à la verticale
+				else if (moving_ok(all_wall_rectangle, futur_perso_rectangle_verticale)) {
+					perso.y = futur_y_perso;
+				}
+			}
 		}
 
 		Browser.window.requestAnimationFrame(update);
