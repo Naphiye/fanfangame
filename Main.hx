@@ -9,10 +9,11 @@ import pixi.core.Application;
 // https://pixijs.download/v5.2.2/docs/index.html
 class Main {
 	static var perso:Sprite;
-
+	static var star_bonus:Sprite;
 	static var ECRAN_LARGE:Int = 800;
 	static var ECRAN_HAUT:Int = 600;
-	static var PERSO_VITESSE:Int = 10;
+	static var PERSO_VITESSE:Int = 3;
+	static var PERSO_VITESSE_PLUS:Int = 10;
 	static var WALL_POS:Array<Array<Int>> = [];
 	static var all_wall_rectangle:Array<Rectangle> = [];
 	static var vitesse_x_perso:Int = 0;
@@ -22,8 +23,8 @@ class Main {
 		// Preload
 		var persoProm = Texture.fromURL('perso.png');
 		var murProm = Texture.fromURL('wall.jpeg');
-
-		Promise.all([persoProm, murProm]).then(startGame);
+		var starProm = Texture.fromURL('etoile.jpeg');
+		Promise.all([persoProm, murProm, starProm]).then(startGame);
 	}
 
 	static function startGame(_) {
@@ -37,6 +38,12 @@ class Main {
 		perso.y = 50;
 		var perso_rectangle:Rectangle = new Rectangle(perso.x, perso.y, perso.width, perso.height);
 		app.stage.addChild(perso);
+
+		star_bonus = Sprite.from('etoile.jpeg');
+		star_bonus.x = 150;
+		star_bonus.y = 50;
+		var star_bonus_rectangle:Rectangle = new Rectangle(star_bonus.x, star_bonus.y, star_bonus.width, star_bonus.height);
+		app.stage.addChild(star_bonus);
 
 		var wall_image = Sprite.from('wall.jpeg');
 
@@ -52,13 +59,22 @@ class Main {
 			wall_image.y = wall[1];
 			var wall_rectangle:Rectangle = new Rectangle(wall_image.x, wall_image.y, wall_image.width, wall_image.height);
 
-			if (!collision_point(wall_rectangle, perso_rectangle)) {
+			if (!collision_point(wall_rectangle, perso_rectangle) && !collision_point(wall_rectangle, star_bonus_rectangle)) {
 				app.stage.addChild(wall_image);
 
 				all_wall_rectangle.push(wall_image.getBounds());
 			}
 		}
+
 		Browser.window.requestAnimationFrame(update);
+	}
+
+	static function star_bonus_taken(perso_rect:Rectangle, star_bonus_rect:Rectangle) {
+		if (!collision_point(star_bonus_rect, perso_rect)) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 
 	static function can_place_wall(wall_position:Array<Int>, walls_already_placed:Array<Array<Int>>, wall_width:Float, wall_height:Float) {
@@ -158,7 +174,12 @@ class Main {
 				}
 			}
 		}
-
+		var perso_rectangle:Rectangle = new Rectangle(perso.x, perso.y, perso.width, perso.height);
+		var star_bonus_rectangle:Rectangle = new Rectangle(star_bonus.x, star_bonus.y, star_bonus.width, star_bonus.height);
+		if (star_bonus_taken(perso_rectangle, star_bonus_rectangle)) {
+			PERSO_VITESSE = PERSO_VITESSE_PLUS;
+			trace('BONUS VITESSE X10');
+		}
 		Browser.window.requestAnimationFrame(update);
 	}
 }
