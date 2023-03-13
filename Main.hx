@@ -11,6 +11,7 @@ class Main {
 	static var perso:Sprite;
 	static var star_bonus:Sprite;
 	static var finish_stairs:Sprite;
+	static var ghost:Sprite;
 	static var ECRAN_LARGE:Int = 800;
 	static var ECRAN_HAUT:Int = 600;
 	static var PERSO_VITESSE:Int = 3;
@@ -25,9 +26,10 @@ class Main {
 		// Preload
 		var persoProm = Texture.fromURL('perso.png');
 		var murProm = Texture.fromURL('wall.jpeg');
-		var starProm = Texture.fromURL('etoile.jpeg');
+		var starProm = Texture.fromURL('star.png');
 		var stairsProm = Texture.fromURL('stairs.png');
-		Promise.all([persoProm, murProm, starProm, stairsProm]).then(startGame);
+		var ghostProm = Texture.fromURL('ghost.png');
+		Promise.all([persoProm, murProm, starProm, stairsProm, ghostProm]).then(startGame);
 	}
 
 	static function startGame(_) {
@@ -44,7 +46,7 @@ class Main {
 		var finish_stairs_rectangle:Rectangle = new Rectangle(finish_stairs.x, finish_stairs.y, finish_stairs.width, finish_stairs.height);
 		app.stage.addChild(finish_stairs);
 
-		star_bonus = Sprite.from('etoile.jpeg');
+		star_bonus = Sprite.from('star.png');
 		star_bonus.x = 80;
 		star_bonus.y = 150;
 		var star_bonus_rectangle:Rectangle = new Rectangle(star_bonus.x, star_bonus.y, star_bonus.width, star_bonus.height);
@@ -57,6 +59,12 @@ class Main {
 		perso.y = 50;
 		var perso_rectangle:Rectangle = new Rectangle(perso.x, perso.y, perso.width, perso.height);
 		app.stage.addChild(perso);
+
+		ghost = Sprite.from('ghost.png');
+		ghost.x = 350;
+		ghost.y = 90;
+		var ghost_rectangle:Rectangle = new Rectangle(ghost.x, ghost.y, ghost.width, ghost.height);
+		app.stage.addChild(ghost);
 
 		for (i in 0...200) {
 			var position = [Std.random(ECRAN_LARGE), Std.random(ECRAN_HAUT)];
@@ -72,7 +80,8 @@ class Main {
 
 			if (!collision_point(wall_rectangle, perso_rectangle)
 				&& !collision_point(wall_rectangle, star_bonus_rectangle)
-				&& !collision_point(wall_rectangle, finish_stairs_rectangle)) {
+				&& !collision_point(wall_rectangle, finish_stairs_rectangle)
+				&& !collision_point(wall_rectangle, ghost_rectangle)) {
 				app.stage.addChild(wall_image);
 
 				all_wall_rectangle.push(wall_image.getBounds());
@@ -207,6 +216,12 @@ class Main {
 			perso.y = finish_stairs.y;
 			PERSO_VITESSE = PERSO_STOP;
 			trace('Gagné !!!!');
+		}
+		var ghost_rectangle:Rectangle = new Rectangle(ghost.x, ghost.y, ghost.width, ghost.height);
+		if (collision_point(perso_rectangle, ghost_rectangle)) {
+			perso.x = 50;
+			perso.y = 50;
+			trace('perdu !!!! bouhouuu !!');
 		}
 		Browser.window.requestAnimationFrame(update);
 	}
