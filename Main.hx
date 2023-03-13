@@ -10,10 +10,12 @@ import pixi.core.Application;
 class Main {
 	static var perso:Sprite;
 	static var star_bonus:Sprite;
+	static var finish_stairs:Sprite;
 	static var ECRAN_LARGE:Int = 800;
 	static var ECRAN_HAUT:Int = 600;
 	static var PERSO_VITESSE:Int = 3;
 	static var PERSO_VITESSE_PLUS:Int = 10;
+	static var PERSO_STOP:Int = 0;
 	static var WALL_POS:Array<Array<Int>> = [];
 	static var all_wall_rectangle:Array<Rectangle> = [];
 	static var vitesse_x_perso:Int = 0;
@@ -24,7 +26,8 @@ class Main {
 		var persoProm = Texture.fromURL('perso.png');
 		var murProm = Texture.fromURL('wall.jpeg');
 		var starProm = Texture.fromURL('etoile.jpeg');
-		Promise.all([persoProm, murProm, starProm]).then(startGame);
+		var stairsProm = Texture.fromURL('stairs.png');
+		Promise.all([persoProm, murProm, starProm, stairsProm]).then(startGame);
 	}
 
 	static function startGame(_) {
@@ -33,19 +36,27 @@ class Main {
 		var app = new Application({backgroundColor: 0x000000});
 		Browser.document.body.appendChild(app.view);
 
+		finish_stairs = Sprite.from('stairs.png');
+		finish_stairs.x = 150;
+		finish_stairs.y = 50;
+		// finish_stairs.x = (ECRAN_LARGE - finish_stairs.width);
+		// finish_stairs.y = (ECRAN_HAUT - finish_stairs.height);
+		var finish_stairs_rectangle:Rectangle = new Rectangle(finish_stairs.x, finish_stairs.y, finish_stairs.width, finish_stairs.height);
+		app.stage.addChild(finish_stairs);
+
+		star_bonus = Sprite.from('etoile.jpeg');
+		star_bonus.x = 80;
+		star_bonus.y = 150;
+		var star_bonus_rectangle:Rectangle = new Rectangle(star_bonus.x, star_bonus.y, star_bonus.width, star_bonus.height);
+		app.stage.addChild(star_bonus);
+
+		var wall_image = Sprite.from('wall.jpeg');
+
 		perso = Sprite.from('perso.png');
 		perso.x = 50;
 		perso.y = 50;
 		var perso_rectangle:Rectangle = new Rectangle(perso.x, perso.y, perso.width, perso.height);
 		app.stage.addChild(perso);
-
-		star_bonus = Sprite.from('etoile.jpeg');
-		star_bonus.x = 150;
-		star_bonus.y = 50;
-		var star_bonus_rectangle:Rectangle = new Rectangle(star_bonus.x, star_bonus.y, star_bonus.width, star_bonus.height);
-		app.stage.addChild(star_bonus);
-
-		var wall_image = Sprite.from('wall.jpeg');
 
 		for (i in 0...200) {
 			var position = [Std.random(ECRAN_LARGE), Std.random(ECRAN_HAUT)];
@@ -59,7 +70,9 @@ class Main {
 			wall_image.y = wall[1];
 			var wall_rectangle:Rectangle = new Rectangle(wall_image.x, wall_image.y, wall_image.width, wall_image.height);
 
-			if (!collision_point(wall_rectangle, perso_rectangle) && !collision_point(wall_rectangle, star_bonus_rectangle)) {
+			if (!collision_point(wall_rectangle, perso_rectangle)
+				&& !collision_point(wall_rectangle, star_bonus_rectangle)
+				&& !collision_point(wall_rectangle, finish_stairs_rectangle)) {
 				app.stage.addChild(wall_image);
 
 				all_wall_rectangle.push(wall_image.getBounds());
@@ -67,6 +80,14 @@ class Main {
 		}
 
 		Browser.window.requestAnimationFrame(update);
+	}
+
+	static function finish_stairs_taken(perso_rect:Rectangle, finish_stairs_rect:Rectangle) {
+		if (!collision_point(finish_stairs_rect, perso_rect)) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 
 	static function star_bonus_taken(perso_rect:Rectangle, star_bonus_rect:Rectangle) {
@@ -179,6 +200,13 @@ class Main {
 		if (star_bonus_taken(perso_rectangle, star_bonus_rectangle)) {
 			PERSO_VITESSE = PERSO_VITESSE_PLUS;
 			trace('BONUS VITESSE X10');
+		}
+		var finish_stairs_rectangle:Rectangle = new Rectangle(finish_stairs.x, finish_stairs.y, finish_stairs.width, finish_stairs.height);
+		if (finish_stairs_taken(finish_stairs_rectangle, perso_rectangle)) {
+			perso.x = finish_stairs.x;
+			perso.y = finish_stairs.y;
+			PERSO_VITESSE = PERSO_STOP;
+			trace('Gagné !!!!');
 		}
 		Browser.window.requestAnimationFrame(update);
 	}
