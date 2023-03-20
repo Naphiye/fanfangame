@@ -1,3 +1,4 @@
+import pixi.core.display.DisplayObject.DestroyOptions;
 import js.lib.intl.Collator.CollatorSupportedLocalesOfOptions;
 import js.lib.Promise;
 import pixi.core.textures.Texture;
@@ -38,6 +39,9 @@ class Main {
 		var app = new Application({backgroundColor: 0x000000});
 		Browser.document.body.appendChild(app.view);
 
+		/*var app_two = new Application({backgroundColor: 0x918585});
+			Browser.document.body.appendChild(app_two.view); */
+
 		finish_stairs = Sprite.from('stairs.png');
 		finish_stairs.x = 150;
 		finish_stairs.y = 50;
@@ -66,7 +70,7 @@ class Main {
 		var ghost_rectangle:Rectangle = new Rectangle(ghost.x, ghost.y, ghost.width, ghost.height);
 		app.stage.addChild(ghost);
 
-		for (i in 0...200) {
+		for (i in 0...100) {
 			var position = [Std.random(ECRAN_LARGE), Std.random(ECRAN_HAUT)];
 			if (can_place_wall(position, WALL_POS, wall_image.width, wall_image.height)) {
 				WALL_POS.push(position);
@@ -91,16 +95,15 @@ class Main {
 		Browser.window.requestAnimationFrame(update);
 	}
 
-	static function finish_stairs_taken(perso_rect:Rectangle, finish_stairs_rect:Rectangle) {
-		if (!collision_point(finish_stairs_rect, perso_rect)) {
+	static function edge_of_the_screen(perso_rect:Rectangle) {
+		if (inside_screen(perso_rect)) {
 			return false;
-		} else {
-			return true;
 		}
+		return true;
 	}
 
-	static function star_bonus_taken(perso_rect:Rectangle, star_bonus_rect:Rectangle) {
-		if (!collision_point(star_bonus_rect, perso_rect)) {
+	static function is_taken(perso_rect:Rectangle, objects_taken:Rectangle) {
+		if (!collision_point(objects_taken, perso_rect)) {
 			return false;
 		} else {
 			return true;
@@ -157,9 +160,9 @@ class Main {
 			if (collision_point(rects, perso_futur)) {
 				return false;
 			}
-			if (!inside_screen(perso_futur)) {
+			/*if (!inside_screen(perso_futur)) {
 				return false;
-			}
+			}*/
 		}
 		return true;
 	}
@@ -206,22 +209,29 @@ class Main {
 		}
 		var perso_rectangle:Rectangle = new Rectangle(perso.x, perso.y, perso.width, perso.height);
 		var star_bonus_rectangle:Rectangle = new Rectangle(star_bonus.x, star_bonus.y, star_bonus.width, star_bonus.height);
-		if (star_bonus_taken(perso_rectangle, star_bonus_rectangle)) {
+		var finish_stairs_rectangle:Rectangle = new Rectangle(finish_stairs.x, finish_stairs.y, finish_stairs.width, finish_stairs.height);
+		var ghost_rectangle:Rectangle = new Rectangle(ghost.x, ghost.y, ghost.width, ghost.height);
+
+		if (is_taken(perso_rectangle, star_bonus_rectangle)) {
 			PERSO_VITESSE = PERSO_VITESSE_PLUS;
 			trace('BONUS VITESSE X10');
 		}
-		var finish_stairs_rectangle:Rectangle = new Rectangle(finish_stairs.x, finish_stairs.y, finish_stairs.width, finish_stairs.height);
-		if (finish_stairs_taken(finish_stairs_rectangle, perso_rectangle)) {
+
+		if (is_taken(finish_stairs_rectangle, perso_rectangle)) {
 			perso.x = finish_stairs.x;
 			perso.y = finish_stairs.y;
 			PERSO_VITESSE = PERSO_STOP;
 			trace('Gagné !!!!');
 		}
-		var ghost_rectangle:Rectangle = new Rectangle(ghost.x, ghost.y, ghost.width, ghost.height);
+
 		if (collision_point(perso_rectangle, ghost_rectangle)) {
 			perso.x = 50;
 			perso.y = 50;
 			trace('perdu !!!! bouhouuu !!');
+		}
+
+		if (edge_of_the_screen(perso_rectangle)) {
+			trace('je suis sorti ');
 		}
 		Browser.window.requestAnimationFrame(update);
 	}
