@@ -1,5 +1,3 @@
-import pixi.core.display.DisplayObject.DestroyOptions;
-import js.lib.intl.Collator.CollatorSupportedLocalesOfOptions;
 import js.lib.Promise;
 import pixi.core.textures.Texture;
 import pixi.core.math.shapes.Rectangle;
@@ -9,19 +7,23 @@ import pixi.core.Application;
 
 // https://pixijs.download/v5.2.2/docs/index.html
 class Main {
+	static inline var ECRAN_LARGE:Int = 1024;
+	static inline var ECRAN_HAUT:Int = 768;
+	static inline var PERSO_VITESSE:Int = 3;
+	static inline var PERSO_VITESSE_PLUS:Int = PERSO_VITESSE * 2;
+	static inline var PERSO_STOP:Int = 0;
+	static inline var DELAY_SPEED_BONUS_SECOND:Int = 5;
+
+	static var screen:Sprite;
+
+	static var vitesse_perso:Int = PERSO_VITESSE;
 	static var perso:Sprite;
 	static var star_bonus:Sprite;
 	static var finish_stairs:Sprite;
 	static var ghost:Sprite;
-	static var ECRAN_LARGE:Int = 800;
-	static var ECRAN_HAUT:Int = 600;
-	static var PERSO_VITESSE:Int = 3;
-	static var PERSO_VITESSE_PLUS:Int = 10;
-	static var PERSO_STOP:Int = 0;
-	static var WALL_POS:Array<Array<Int>> = [];
+	static var save_time:Float = 0;
+
 	static var all_wall_rectangle:Array<Rectangle> = [];
-	static var vitesse_x_perso:Int = 0;
-	static var vitesse_y_perso:Int = 0;
 
 	static function main() {
 		// Preload
@@ -36,25 +38,23 @@ class Main {
 	static function startGame(_) {
 		KeyboardManager.init();
 
-		var app = new Application({backgroundColor: 0x000000});
+		var app = new Application({backgroundColor: 0x000000, width: ECRAN_LARGE, height: ECRAN_HAUT});
 		Browser.document.body.appendChild(app.view);
 
-		/*var app_two = new Application({backgroundColor: 0x918585});
-			Browser.document.body.appendChild(app_two.view); */
+		screen = new Sprite();
+		app.stage.addChild(screen);
 
 		finish_stairs = Sprite.from('stairs.png');
-		finish_stairs.x = 150;
-		finish_stairs.y = 50;
-		// finish_stairs.x = (ECRAN_LARGE - finish_stairs.width);
-		// finish_stairs.y = (ECRAN_HAUT - finish_stairs.height);
+		finish_stairs.x = (ECRAN_LARGE - finish_stairs.width);
+		finish_stairs.y = (ECRAN_HAUT - finish_stairs.height);
 		var finish_stairs_rectangle:Rectangle = new Rectangle(finish_stairs.x, finish_stairs.y, finish_stairs.width, finish_stairs.height);
-		app.stage.addChild(finish_stairs);
+		screen.addChild(finish_stairs);
 
 		star_bonus = Sprite.from('star.png');
 		star_bonus.x = 80;
 		star_bonus.y = 150;
 		var star_bonus_rectangle:Rectangle = new Rectangle(star_bonus.x, star_bonus.y, star_bonus.width, star_bonus.height);
-		app.stage.addChild(star_bonus);
+		screen.addChild(star_bonus);
 
 		var wall_image = Sprite.from('wall.jpeg');
 
@@ -62,16 +62,18 @@ class Main {
 		perso.x = 50;
 		perso.y = 50;
 		var perso_rectangle:Rectangle = new Rectangle(perso.x, perso.y, perso.width, perso.height);
-		app.stage.addChild(perso);
+		screen.addChild(perso);
 
 		ghost = Sprite.from('ghost.png');
 		ghost.x = 350;
 		ghost.y = 90;
 		var ghost_rectangle:Rectangle = new Rectangle(ghost.x, ghost.y, ghost.width, ghost.height);
-		app.stage.addChild(ghost);
+		screen.addChild(ghost);
+
+		var WALL_POS:Array<Array<Int>> = [];
 
 		for (i in 0...100) {
-			var position = [Std.random(ECRAN_LARGE), Std.random(ECRAN_HAUT)];
+			var position = [Std.random(ECRAN_LARGE * 2), Std.random(ECRAN_HAUT)];
 			if (can_place_wall(position, WALL_POS, wall_image.width, wall_image.height)) {
 				WALL_POS.push(position);
 			}
@@ -86,7 +88,7 @@ class Main {
 				&& !collision_point(wall_rectangle, star_bonus_rectangle)
 				&& !collision_point(wall_rectangle, finish_stairs_rectangle)
 				&& !collision_point(wall_rectangle, ghost_rectangle)) {
-				app.stage.addChild(wall_image);
+				screen.addChild(wall_image);
 
 				all_wall_rectangle.push(wall_image.getBounds());
 			}
@@ -102,7 +104,7 @@ class Main {
 		return true;
 	}
 
-	static function is_taken(perso_rect:Rectangle, objects_taken:Rectangle) {
+	static function is_over(perso_rect:Rectangle, objects_taken:Rectangle) {
 		if (!collision_point(objects_taken, perso_rect)) {
 			return false;
 		} else {
@@ -167,19 +169,22 @@ class Main {
 		return true;
 	}
 
-	static function update(f:Float) {
+	static function update(time:Float) {
+		var vitesse_x_perso;
+		var vitesse_y_perso;
+
 		if (KeyboardManager.isDown(KeyboardManager.ARROW_LEFT)) {
-			vitesse_x_perso = -PERSO_VITESSE;
+			vitesse_x_perso = -vitesse_perso;
 		} else if (KeyboardManager.isDown(KeyboardManager.ARROW_RIGHT)) {
-			vitesse_x_perso = PERSO_VITESSE;
+			vitesse_x_perso = vitesse_perso;
 		} else {
 			vitesse_x_perso = 0;
 		}
 
 		if (KeyboardManager.isDown(KeyboardManager.ARROW_DOWN)) {
-			vitesse_y_perso = PERSO_VITESSE;
+			vitesse_y_perso = vitesse_perso;
 		} else if (KeyboardManager.isDown(KeyboardManager.ARROW_UP)) {
-			vitesse_y_perso = -PERSO_VITESSE;
+			vitesse_y_perso = -vitesse_perso;
 		} else {
 			vitesse_y_perso = 0;
 		}
@@ -212,15 +217,24 @@ class Main {
 		var finish_stairs_rectangle:Rectangle = new Rectangle(finish_stairs.x, finish_stairs.y, finish_stairs.width, finish_stairs.height);
 		var ghost_rectangle:Rectangle = new Rectangle(ghost.x, ghost.y, ghost.width, ghost.height);
 
-		if (is_taken(perso_rectangle, star_bonus_rectangle)) {
-			PERSO_VITESSE = PERSO_VITESSE_PLUS;
-			trace('BONUS VITESSE X10');
+		if (is_over(perso_rectangle, star_bonus_rectangle) && star_bonus.visible) {
+			vitesse_perso = PERSO_VITESSE_PLUS;
+			trace('BONUS VITESSE');
+			star_bonus.visible = false;
+
+			save_time = time;
 		}
 
-		if (is_taken(finish_stairs_rectangle, perso_rectangle)) {
+		if (vitesse_perso == PERSO_VITESSE_PLUS && save_time + (DELAY_SPEED_BONUS_SECOND * 1000) < time) {
+			vitesse_perso = PERSO_VITESSE;
+			star_bonus.visible = true;
+			trace('Fin du bonus');
+		}
+
+		if (is_over(finish_stairs_rectangle, perso_rectangle)) {
 			perso.x = finish_stairs.x;
 			perso.y = finish_stairs.y;
-			PERSO_VITESSE = PERSO_STOP;
+			vitesse_perso = PERSO_STOP;
 			trace('Gagné !!!!');
 		}
 
@@ -232,6 +246,7 @@ class Main {
 
 		if (edge_of_the_screen(perso_rectangle)) {
 			trace('je suis sorti ');
+			screen.x = -ECRAN_LARGE;
 		}
 		Browser.window.requestAnimationFrame(update);
 	}
