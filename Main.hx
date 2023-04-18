@@ -29,6 +29,7 @@ class Main {
 	static var other_rectangle:Array<Rectangle> = [];
 	static var all_wall_rectangle:Array<Rectangle> = [];
 	static var all_coin_rectangle:Array<Rectangle> = [];
+	static var COIN_POS:Array<Array<Int>> = [];
 
 	static function main() {
 		// Preload
@@ -49,6 +50,7 @@ class Main {
 
 		screen = new Sprite();
 		app.stage.addChild(screen);
+		var screen_rectangle:Rectangle = new Rectangle(screen.x, screen.y, screen.width, screen.height);
 
 		finish_stairs = Sprite.from('stairs.png');
 		finish_stairs.x = (ECRAN_LARGE - finish_stairs.width);
@@ -102,9 +104,7 @@ class Main {
 			}
 		}
 
-		var coin_image = Sprite.from('coin.png');
-
-		var COIN_POS:Array<Array<Int>> = [];
+		coin_image = Sprite.from('coin.png');
 
 		for (i in 0...16) {
 			var position = [Std.random(ECRAN_LARGE), Std.random(ECRAN_HAUT)];
@@ -139,10 +139,36 @@ class Main {
 	}
 
 	static function edge_of_the_screen(perso_rect:Rectangle) {
-		if (inside_screen(perso_rect)) {
-			return false;
+		if ((perso_rect.x) < screen.x) { // a gauche de lecran
+			return true;
 		}
-		return true;
+		if ((perso_rect.x + perso_rect.width) > (screen.x + ECRAN_LARGE)) { // a droite de lecran
+			return true;
+		}
+		if ((perso_rect.y) < screen.y) { // en haut de lecran
+			return true;
+		}
+		if ((perso_rect.y + perso_rect.height) > (screen.y + ECRAN_HAUT)) { // en bas de lecran
+			return true;
+		}
+
+		return false;
+	}
+
+	static function move_screen(perso_rect:Rectangle) {
+		if ((perso_rect.x) < (-screen.x)) { // a gauche de lecran
+			screen.x += ECRAN_LARGE;
+		}
+
+		if ((perso_rect.x + perso_rect.width) > ((-screen.x) + ECRAN_LARGE)) { // a droite de lecran
+			screen.x -= ECRAN_LARGE;
+		}
+		if ((perso_rect.y) < (-screen.y)) { // en haut de lecran
+			screen.y += ECRAN_HAUT;
+		}
+		if ((perso_rect.y + perso_rect.height) > ((-screen.y) + ECRAN_HAUT)) { // en bas de lecran
+			screen.y -= ECRAN_HAUT;
+		}
 	}
 
 	static function can_place_object(object_position:Array<Int>, objects_already_placed:Array<Array<Int>>, object_width:Float, object_height:Float) {
@@ -174,16 +200,16 @@ class Main {
 	}
 
 	static function collision_point(object_rect:Rectangle, perso_rect:Rectangle) {
-		if ((perso_rect.x + perso_rect.width) < object_rect.x) { // a gauche du mur
+		if ((perso_rect.x + perso_rect.width) < object_rect.x) { // a gauche de l'objet
 			return false;
 		}
-		if (perso_rect.x > (object_rect.x + object_rect.width)) { // a droite du mur
+		if (perso_rect.x > (object_rect.x + object_rect.width)) { // a droite de l'objet
 			return false;
 		}
-		if ((perso_rect.y + perso_rect.height) < object_rect.y) { // en haut du mur
+		if ((perso_rect.y + perso_rect.height) < object_rect.y) { // en haut de l'objet
 			return false;
 		}
-		if (perso_rect.y > (object_rect.y + object_rect.height)) { // en bas du mur
+		if (perso_rect.y > (object_rect.y + object_rect.height)) { // en bas de l'objet
 			return false;
 		}
 
@@ -229,6 +255,7 @@ class Main {
 		} else {
 			vitesse_y_perso = 0;
 		}
+
 		var futur_x_perso = perso.x + vitesse_x_perso;
 		var futur_y_perso = perso.y + vitesse_y_perso;
 		var futur_perso_rectangle:Rectangle = new Rectangle(futur_x_perso, futur_y_perso, perso.width, perso.height);
@@ -259,8 +286,13 @@ class Main {
 		// COINS
 		for (n in all_coin_rectangle) {
 			if (collision_point(n, perso_rectangle)) {
-				total_coin += 1;
-				trace('Gling gling');
+				for (coin in COIN_POS) {
+					if (coin_image.visible = true) {
+						total_coin += 1;
+						trace('Gling gling');
+						coin_image.visible = false;
+					}
+				}
 			}
 		}
 
@@ -293,11 +325,11 @@ class Main {
 			trace('perdu !!!! bouhouuu !!');
 		}
 
-		// TEST SORTIE DECRAN / ECRAN DEPLACER  A GAUCHE
+		// SUIVIE DE LECRAN
 		if (edge_of_the_screen(perso_rectangle)) {
-			trace('je suis sorti ');
-			screen.x = -ECRAN_LARGE;
+			move_screen(perso_rectangle);
 		}
+
 		Browser.window.requestAnimationFrame(update);
 	}
 }
