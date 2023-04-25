@@ -5,6 +5,18 @@ import pixi.core.sprites.Sprite;
 import js.Browser;
 import pixi.core.Application;
 
+using Lambda;
+
+typedef Coin = {
+	var rectangle:Rectangle;
+	var sprite:Sprite;
+}
+
+typedef Wall = {
+	var rectangle:Rectangle;
+	var sprite:Sprite;
+}
+
 // https://pixijs.download/v5.2.2/docs/index.html
 class Main {
 	static inline var ECRAN_LARGE:Int = 1024;
@@ -12,6 +24,8 @@ class Main {
 	static inline var PERSO_VITESSE:Int = 3;
 	static inline var PERSO_VITESSE_PLUS:Int = PERSO_VITESSE * 2;
 	static inline var PERSO_STOP:Int = 0;
+	static inline var NUM_COINS:Int = 10;
+	static inline var NUM_WALLS:Int = 50;
 	static inline var DELAY_SPEED_BONUS_SECOND:Int = 5;
 
 	static var screen:Sprite;
@@ -20,16 +34,13 @@ class Main {
 	static var star_bonus:Sprite;
 	static var finish_stairs:Sprite;
 	static var ghost:Sprite;
-	static var coin_image:Sprite;
-
-	static var total_coin:Int = 0;
 	static var vitesse_perso:Int = PERSO_VITESSE;
 	static var save_time:Float = 0;
 
 	static var other_rectangle:Array<Rectangle> = [];
-	static var all_wall_rectangle:Array<Rectangle> = [];
-	static var all_coin_rectangle:Array<Rectangle> = [];
-	static var COIN_POS:Array<Array<Int>> = [];
+
+	static var walls:Array<Wall> = [];
+	static var coins:Array<Coin> = [];
 
 	static function main() {
 		// Preload
@@ -39,6 +50,7 @@ class Main {
 		var stairsProm = Texture.fromURL('stairs.png');
 		var ghostProm = Texture.fromURL('ghost.png');
 		var coinProm = Texture.fromURL('coin.png');
+
 		Promise.all([persoProm, murProm, starProm, stairsProm, ghostProm, coinProm]).then(startGame);
 	}
 
@@ -50,7 +62,6 @@ class Main {
 
 		screen = new Sprite();
 		app.stage.addChild(screen);
-		var screen_rectangle:Rectangle = new Rectangle(screen.x, screen.y, screen.width, screen.height);
 
 		finish_stairs = Sprite.from('stairs.png');
 		finish_stairs.x = (ECRAN_LARGE - finish_stairs.width);
@@ -80,62 +91,56 @@ class Main {
 		other_rectangle.push(ghost_rectangle);
 		screen.addChild(ghost);
 
-		var wall_image = Sprite.from('wall.jpeg');
-
-		var WALL_POS:Array<Array<Int>> = [];
-
 		// nombre de murs / position aléatoire / sans superposition avec autres murs
-		for (i in 0...10) {
-			var position = [Std.random(ECRAN_LARGE), Std.random(ECRAN_HAUT)];
-			if (can_place_object(position, WALL_POS, wall_image.width, wall_image.height)) {
-				WALL_POS.push(position);
-			}
-		}
-		for (wall in WALL_POS) {
-			wall_image = Sprite.from('wall.jpeg');
-			wall_image.x = wall[0];
-			wall_image.y = wall[1];
-			var wall_rectangle:Rectangle = new Rectangle(wall_image.x, wall_image.y, wall_image.width, wall_image.height);
-			// sans superosition sur d'autres objets
-			if (no_superposition(wall_rectangle, other_rectangle)) {
-				screen.addChild(wall_image);
-
-				all_wall_rectangle.push(wall_image.getBounds());
+		for (i in 0...NUM_WALLS) {
+			var wall_sprite = Sprite.from('wall.jpeg');
+			wall_sprite.x = Std.random(ECRAN_LARGE - Std.int(wall_sprite.width));
+			wall_sprite.y = Std.random(ECRAN_HAUT - Std.int(wall_sprite.height));
+			var wall_rectangle:Rectangle = wall_sprite.getBounds();
+			if (has_no_superposition(wall_rectangle, walls.map(c -> c.rectangle))
+				&& has_no_superposition(wall_rectangle, other_rectangle)) {
+				screen.addChild(wall_sprite);
+				var wall = {
+					rectangle: wall_rectangle,
+					sprite: wall_sprite,
+				};
+				walls.push(wall);
 			}
 		}
 
-		coin_image = Sprite.from('coin.png');
+		// COINS
 
-		for (i in 0...16) {
-			var position = [Std.random(ECRAN_LARGE), Std.random(ECRAN_HAUT)];
-			if (can_place_object(position, COIN_POS, coin_image.width, coin_image.height)
-				&& can_place_object(position, WALL_POS, wall_image.width, wall_image.height)) {
-				COIN_POS.push(position);
+		for (coin_n in 0...NUM_COINS) {
+			var coin_sprite = Sprite.from('coin.png');
+			coin_sprite.x = Std.random(ECRAN_LARGE - Std.int(coin_sprite.width));
+			coin_sprite.y = Std.random(ECRAN_HAUT - Std.int(coin_sprite.height));
+			var coin_rectangle:Rectangle = coin_sprite.getBounds();
+			if (has_no_superposition(coin_rectangle, coins.map(c -> c.rectangle))
+				&& has_no_superposition(coin_rectangle, walls.map(w -> w.rectangle))
+				&& has_no_superposition(coin_rectangle, other_rectangle)) {
+				screen.addChild(coin_sprite);
+				var coin = {
+					rectangle: coin_rectangle,
+					sprite: coin_sprite,
+				};
+				coins.push(coin);
 			}
 		}
-		for (coin in COIN_POS) {
-			coin_image = Sprite.from('coin.png');
-			coin_image.x = coin[0];
-			coin_image.y = coin[1];
-			var coin_rectangle:Rectangle = new Rectangle(coin_image.x, coin_image.y, coin_image.width, coin_image.height);
 
-			if (no_superposition(coin_rectangle, other_rectangle)) {
-				screen.addChild(coin_image);
-
-				all_coin_rectangle.push(coin_image.getBounds());
-			}
-		}
+		trace('Nombre de coins affichés ${coins.length}');
+		trace('Nombre de murs affichés ${walls.length}');
 
 		Browser.window.requestAnimationFrame(update);
 	}
 
-	static function no_superposition(object:Rectangle, others:Array<Rectangle>) {
+	static function has_no_superposition(object:Rectangle, others:Array<Rectangle>) {
 		for (n in others) {
-			if (!collision_point(object, n)) {
-				return true;
+			if (collision_point(object, n)) {
+				return false;
 			}
 		}
-		return false;
+
+		return true;
 	}
 
 	static function edge_of_the_screen(perso_rect:Rectangle) {
@@ -260,7 +265,7 @@ class Main {
 		var futur_y_perso = perso.y + vitesse_y_perso;
 		var futur_perso_rectangle:Rectangle = new Rectangle(futur_x_perso, futur_y_perso, perso.width, perso.height);
 
-		if (moving_ok(all_wall_rectangle, futur_perso_rectangle)) {
+		if (moving_ok(walls.map(w -> w.rectangle), futur_perso_rectangle)) {
 			perso.x = futur_x_perso;
 			perso.y = futur_y_perso;
 		} else {
@@ -271,11 +276,11 @@ class Main {
 				// est ce que je peux me déplacer à l'horizontale
 				var futur_perso_rectangle_horizontale:Rectangle = new Rectangle(futur_x_perso, perso.y, perso.width, perso.height);
 				var futur_perso_rectangle_verticale:Rectangle = new Rectangle(perso.x, futur_y_perso, perso.width, perso.height);
-				if (moving_ok(all_wall_rectangle, futur_perso_rectangle_horizontale)) {
+				if (moving_ok(walls.map(w -> w.rectangle), futur_perso_rectangle_horizontale)) {
 					perso.x = futur_x_perso;
 				}
 				// sinon est ce que je peux me deplacer à la verticale
-				else if (moving_ok(all_wall_rectangle, futur_perso_rectangle_verticale)) {
+				else if (moving_ok(walls.map(w -> w.rectangle), futur_perso_rectangle_verticale)) {
 					perso.y = futur_y_perso;
 				}
 			}
@@ -283,16 +288,12 @@ class Main {
 
 		// INTERACTIONS AVEC OBJETS
 
-		// COINS
-		for (n in all_coin_rectangle) {
-			if (collision_point(n, perso_rectangle)) {
-				for (coin in COIN_POS) {
-					if (coin_image.visible = true) {
-						total_coin += 1;
-						trace('Gling gling');
-						coin_image.visible = false;
-					}
-				}
+		// Pour chaque coin dans le tableau coins
+		for (coin in coins) {
+			// Si ça collisionne avec le personnage
+			if (coin.sprite.visible && collision_point(coin.rectangle, perso_rectangle)) {
+				// le coin n'est plus visible et plus collisionnable
+				coin.sprite.visible = !coin.sprite.visible;
 			}
 		}
 
@@ -312,10 +313,7 @@ class Main {
 
 		// STAIRS FOR FINISH
 		if (collision_point(finish_stairs_rectangle, perso_rectangle)) {
-			perso.x = finish_stairs.x;
-			perso.y = finish_stairs.y;
-			vitesse_perso = PERSO_STOP;
-			trace('Gagné !!!!');
+			finish();
 		}
 
 		// GHOST TRAP
@@ -331,5 +329,16 @@ class Main {
 		}
 
 		Browser.window.requestAnimationFrame(update);
+	}
+
+	static public function finish() {
+		// Si on a pris toutes les pièces
+		if (coins.exists(c -> return c.sprite.visible))
+			return;
+
+		perso.x = finish_stairs.x;
+		perso.y = finish_stairs.y;
+		vitesse_perso = PERSO_STOP;
+		trace('Gagné !!!!');
 	}
 }
