@@ -7,11 +7,6 @@ import pixi.core.Application;
 
 using Lambda;
 
-typedef Coin = {
-	var rectangle:Rectangle;
-	var sprite:Sprite;
-}
-
 typedef Wall = {
 	var rectangle:Rectangle;
 	var sprite:Sprite;
@@ -110,19 +105,18 @@ class Main {
 
 		// COINS
 
+		var coin_sprite_template = Sprite.from('coin.png');
+
 		for (coin_n in 0...NUM_COINS) {
-			var coin_sprite = Sprite.from('coin.png');
-			coin_sprite.x = Std.random(ECRAN_LARGE - Std.int(coin_sprite.width));
-			coin_sprite.y = Std.random(ECRAN_HAUT - Std.int(coin_sprite.height));
-			var coin_rectangle:Rectangle = coin_sprite.getBounds();
-			if (has_no_superposition(coin_rectangle, coins.map(c -> c.rectangle))
+			var coin_x = Std.random(ECRAN_LARGE - Std.int(coin_sprite_template.width));
+			var coin_y = Std.random(ECRAN_HAUT - Std.int(coin_sprite_template.height));
+			var coin = new Coin(coin_x, coin_y);
+			var coin_rectangle:Rectangle = coin.getBounds();
+			if (has_no_superposition(coin_rectangle, coins.map(c -> c.getBounds()))
 				&& has_no_superposition(coin_rectangle, walls.map(w -> w.rectangle))
 				&& has_no_superposition(coin_rectangle, other_rectangle)) {
-				screen.addChild(coin_sprite);
-				var coin = {
-					rectangle: coin_rectangle,
-					sprite: coin_sprite,
-				};
+				coin.addToStage(screen);
+
 				coins.push(coin);
 			}
 		}
@@ -290,10 +284,11 @@ class Main {
 
 		// Pour chaque coin dans le tableau coins
 		for (coin in coins) {
+			coin.update(time);
 			// Si ça collisionne avec le personnage
-			if (coin.sprite.visible && collision_point(coin.rectangle, perso_rectangle)) {
+			if (coin.isTakable() && collision_point(coin.getBounds(), perso_rectangle)) {
 				// le coin n'est plus visible et plus collisionnable
-				coin.sprite.visible = !coin.sprite.visible;
+				coin.take();
 			}
 		}
 
@@ -333,7 +328,7 @@ class Main {
 
 	static public function finish() {
 		// Si on a pris toutes les pièces
-		if (coins.exists(c -> return c.sprite.visible))
+		if (coins.exists(c -> return !c.isTaken()))
 			return;
 
 		perso.x = finish_stairs.x;
