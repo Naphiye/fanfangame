@@ -1,3 +1,4 @@
+import js.html.Console;
 import js.lib.Promise;
 import pixi.core.textures.Texture;
 import pixi.core.math.shapes.Rectangle;
@@ -11,7 +12,7 @@ using Lambda;
 class Main {
 	static inline var ECRAN_LARGE:Int = 1024;
 	static inline var ECRAN_HAUT:Int = 768;
-	static inline var PERSO_VITESSE:Int = 3;
+	static inline var PERSO_VITESSE:Int = 5;
 	static inline var PERSO_VITESSE_PLUS:Int = PERSO_VITESSE * 2;
 	static inline var PERSO_STOP:Int = 0;
 	static inline var NUM_COINS:Int = 10;
@@ -233,23 +234,6 @@ class Main {
 		return true;
 	}
 
-	static function inside_screen(perso_rect:Rectangle) {
-		if ((perso_rect.x) < 0) { // a gauche de lecran
-			return false;
-		}
-		if ((perso_rect.x + perso_rect.width) > ECRAN_LARGE) { // a droite de lecran
-			return false;
-		}
-		if ((perso_rect.y) < 0) { // en haut de lecran
-			return false;
-		}
-		if ((perso_rect.y + perso_rect.height) > ECRAN_HAUT) { // en bas de lecran
-			return false;
-		}
-
-		return true;
-	}
-
 	static function collision_point(object_rect:Rectangle, perso_rect:Rectangle) {
 		if ((perso_rect.x + perso_rect.width) < object_rect.x) { // a gauche de l'objet
 			return false;
@@ -267,9 +251,9 @@ class Main {
 		return true;
 	}
 
-	static function moving_ok(wall_rects:Array<Rectangle>, perso_futur:Rectangle) {
-		for (rects in wall_rects) {
-			if (collision_point(rects, perso_futur)) {
+	static function moving_ok(wall_rects:Array<Wall>, perso_futur:Rectangle) {
+		for (wall in wall_rects) {
+			if (collision_point(wall.getBounds(), perso_futur)) {
 				return false;
 			}
 		}
@@ -310,7 +294,7 @@ class Main {
 		var futur_y_perso = perso.y + vitesse_y_perso;
 		var futur_perso_rectangle:Rectangle = new Rectangle(futur_x_perso, futur_y_perso, perso.width, perso.height);
 
-		if (moving_ok(walls.map(w -> w.getBounds()), futur_perso_rectangle)) {
+		if (moving_ok(walls, futur_perso_rectangle)) {
 			perso.x = futur_x_perso;
 			perso.y = futur_y_perso;
 		} else {
@@ -321,11 +305,11 @@ class Main {
 				// est ce que je peux me déplacer à l'horizontale
 				var futur_perso_rectangle_horizontale:Rectangle = new Rectangle(futur_x_perso, perso.y, perso.width, perso.height);
 				var futur_perso_rectangle_verticale:Rectangle = new Rectangle(perso.x, futur_y_perso, perso.width, perso.height);
-				if (moving_ok(walls.map(w -> w.getBounds()), futur_perso_rectangle_horizontale)) {
+				if (moving_ok(walls, futur_perso_rectangle_horizontale)) {
 					perso.x = futur_x_perso;
 				}
 				// sinon est ce que je peux me deplacer à la verticale
-				else if (moving_ok(walls.map(w -> w.getBounds()), futur_perso_rectangle_verticale)) {
+				else if (moving_ok(walls, futur_perso_rectangle_verticale)) {
 					perso.y = futur_y_perso;
 				}
 			}

@@ -1,3 +1,4 @@
+import pixi.core.math.shapes.Rectangle;
 import pixi.core.sprites.Sprite;
 
 class Coin {
@@ -7,6 +8,7 @@ class Coin {
 	var coin_taken:Bool;
 	var save_time:Float;
 	var total_blink:Int;
+	var bounds:Rectangle;
 
 	public function new(x:Int, y:Int) {
 		coin_sprite = Sprite.from('coin.png');
@@ -16,10 +18,11 @@ class Coin {
 		coin_taken = false;
 		save_time = 0;
 		total_blink = 0;
+		bounds = new Rectangle(coin_sprite.x, coin_sprite.y, coin_sprite.width, coin_sprite.height);
 	}
 
 	public function getBounds() {
-		return coin_sprite.getBounds(false);
+		return bounds;
 	}
 
 	public function isTaken() {

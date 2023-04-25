@@ -1,16 +1,19 @@
+import pixi.core.math.shapes.Rectangle;
 import pixi.core.sprites.Sprite;
 
 class Wall {
 	var wall_sprite:Sprite;
+	var bounds:Rectangle;
 
 	public function new(x:Int, y:Int) {
 		wall_sprite = Sprite.from('wall.jpeg');
 		wall_sprite.x = x;
 		wall_sprite.y = y;
+		bounds = new Rectangle(wall_sprite.x, wall_sprite.y, wall_sprite.width, wall_sprite.height);
 	}
 
 	public function getBounds() {
-		return wall_sprite.getBounds(false);
+		return bounds;
 	}
 
 	public function addToStage(screen:Sprite) {
