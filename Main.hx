@@ -7,11 +7,6 @@ import pixi.core.Application;
 
 using Lambda;
 
-typedef Wall = {
-	var rectangle:Rectangle;
-	var sprite:Sprite;
-}
-
 // https://pixijs.download/v5.2.2/docs/index.html
 class Main {
 	static inline var ECRAN_LARGE:Int = 1024;
@@ -86,19 +81,76 @@ class Main {
 		other_rectangle.push(ghost_rectangle);
 		screen.addChild(ghost);
 
-		// nombre de murs / position aléatoire / sans superposition avec autres murs
-		for (i in 0...NUM_WALLS) {
-			var wall_sprite = Sprite.from('wall.jpeg');
-			wall_sprite.x = Std.random(ECRAN_LARGE - Std.int(wall_sprite.width));
-			wall_sprite.y = Std.random(ECRAN_HAUT - Std.int(wall_sprite.height));
-			var wall_rectangle:Rectangle = wall_sprite.getBounds();
-			if (has_no_superposition(wall_rectangle, walls.map(c -> c.rectangle))
+		// MURS
+
+		var wall_sprite_template = Sprite.from('wall.jpeg');
+
+		for (wall_n in 0...NUM_WALLS) {
+			var wall_x = Std.random(ECRAN_LARGE - Std.int(wall_sprite_template.width));
+			var wall_y = Std.random(ECRAN_HAUT - Std.int(wall_sprite_template.height));
+			var wall = new Wall(wall_x, wall_y);
+			var wall_rectangle:Rectangle = wall.getBounds();
+			if (has_no_superposition(wall_rectangle, walls.map(w -> w.getBounds()))
 				&& has_no_superposition(wall_rectangle, other_rectangle)) {
-				screen.addChild(wall_sprite);
-				var wall = {
-					rectangle: wall_rectangle,
-					sprite: wall_sprite,
-				};
+				wall.addToStage(screen);
+
+				walls.push(wall);
+			}
+		}
+
+		// MUR DU HAUT
+
+		var wall_x = -(ECRAN_LARGE);
+		var wall_y = -(ECRAN_HAUT);
+		var wall = new Wall(wall_x, wall_y);
+		wall.addToStage(screen);
+		for (i in 0...103) {
+			if (wall_x < ((ECRAN_LARGE * 2) - Std.int(wall_sprite_template.width))) {
+				wall_x += 30;
+				var wall = new Wall(wall_x, wall_y);
+				wall.addToStage(screen);
+				walls.push(wall);
+			}
+		}
+
+		// MUR DU BAS
+		var wall_x = -(ECRAN_LARGE);
+		var wall_y = ((ECRAN_HAUT * 2) - Std.int(wall_sprite_template.height));
+		var wall = new Wall(wall_x, wall_y);
+		wall.addToStage(screen);
+		for (i in 0...103) {
+			if (wall_x < ((ECRAN_LARGE * 2) - Std.int(wall_sprite_template.width))) {
+				wall_x += 30;
+				var wall = new Wall(wall_x, wall_y);
+				wall.addToStage(screen);
+				walls.push(wall);
+			}
+		}
+
+		// MUR DE GAUCHE
+		var wall_x = -(ECRAN_LARGE);
+		var wall_y = -(ECRAN_HAUT);
+		var wall = new Wall(wall_x, wall_y);
+		wall.addToStage(screen);
+		for (i in 0...77) {
+			if (wall_y < ((ECRAN_HAUT * 2) - Std.int(wall_sprite_template.height))) {
+				wall_y += 30;
+				var wall = new Wall(wall_x, wall_y);
+				wall.addToStage(screen);
+				walls.push(wall);
+			}
+		}
+
+		// MUR DE DROITE
+		var wall_x = ((ECRAN_LARGE * 2) - Std.int(wall_sprite_template.width));
+		var wall_y = -(ECRAN_HAUT);
+		var wall = new Wall(wall_x, wall_y);
+		wall.addToStage(screen);
+		for (i in 0...77) {
+			if (wall_y < ((ECRAN_HAUT * 2) - Std.int(wall_sprite_template.height))) {
+				wall_y += 30;
+				var wall = new Wall(wall_x, wall_y);
+				wall.addToStage(screen);
 				walls.push(wall);
 			}
 		}
@@ -113,7 +165,7 @@ class Main {
 			var coin = new Coin(coin_x, coin_y);
 			var coin_rectangle:Rectangle = coin.getBounds();
 			if (has_no_superposition(coin_rectangle, coins.map(c -> c.getBounds()))
-				&& has_no_superposition(coin_rectangle, walls.map(w -> w.rectangle))
+				&& has_no_superposition(coin_rectangle, walls.map(w -> w.getBounds()))
 				&& has_no_superposition(coin_rectangle, other_rectangle)) {
 				coin.addToStage(screen);
 
@@ -220,14 +272,13 @@ class Main {
 			if (collision_point(rects, perso_futur)) {
 				return false;
 			}
-			/*if (!inside_screen(perso_futur)) {
-				return false;
-			}*/
 		}
 		return true;
 	}
 
 	static function update(time:Float) {
+		trace(perso.x);
+		trace(perso.y);
 		var vitesse_x_perso;
 		var vitesse_y_perso;
 
@@ -259,7 +310,7 @@ class Main {
 		var futur_y_perso = perso.y + vitesse_y_perso;
 		var futur_perso_rectangle:Rectangle = new Rectangle(futur_x_perso, futur_y_perso, perso.width, perso.height);
 
-		if (moving_ok(walls.map(w -> w.rectangle), futur_perso_rectangle)) {
+		if (moving_ok(walls.map(w -> w.getBounds()), futur_perso_rectangle)) {
 			perso.x = futur_x_perso;
 			perso.y = futur_y_perso;
 		} else {
@@ -270,11 +321,11 @@ class Main {
 				// est ce que je peux me déplacer à l'horizontale
 				var futur_perso_rectangle_horizontale:Rectangle = new Rectangle(futur_x_perso, perso.y, perso.width, perso.height);
 				var futur_perso_rectangle_verticale:Rectangle = new Rectangle(perso.x, futur_y_perso, perso.width, perso.height);
-				if (moving_ok(walls.map(w -> w.rectangle), futur_perso_rectangle_horizontale)) {
+				if (moving_ok(walls.map(w -> w.getBounds()), futur_perso_rectangle_horizontale)) {
 					perso.x = futur_x_perso;
 				}
 				// sinon est ce que je peux me deplacer à la verticale
-				else if (moving_ok(walls.map(w -> w.rectangle), futur_perso_rectangle_verticale)) {
+				else if (moving_ok(walls.map(w -> w.getBounds()), futur_perso_rectangle_verticale)) {
 					perso.y = futur_y_perso;
 				}
 			}
