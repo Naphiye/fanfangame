@@ -1,5 +1,5 @@
-import pixi.core.math.shapes.Rectangle;
 import pixi.core.sprites.Sprite;
+import pixi.core.math.shapes.Rectangle;
 
 class Coin {
 	static var BLINK_COUNT:Int = 6;
@@ -14,11 +14,11 @@ class Coin {
 		coin_sprite = Sprite.from('coin.png');
 		coin_sprite.x = x;
 		coin_sprite.y = y;
+		bounds = new Rectangle(coin_sprite.x, coin_sprite.y, coin_sprite.width, coin_sprite.height);
 
 		coin_taken = false;
 		save_time = 0;
 		total_blink = 0;
-		bounds = new Rectangle(coin_sprite.x, coin_sprite.y, coin_sprite.width, coin_sprite.height);
 	}
 
 	public function getBounds() {
