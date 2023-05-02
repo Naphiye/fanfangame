@@ -21,13 +21,13 @@ class Main {
 	static inline var NUM_COINS:Int = 10;
 	static inline var NUM_WALLS:Int = 50;
 	static inline var NUM_GHOSTS:Int = 3;
-	// static inline var NUM_STARS:Int = 2;
+	static inline var NUM_STARS:Int = 1;
 	static inline var DELAY_SPEED_BONUS_SECOND:Int = 5;
 
 	static var screen:Sprite;
 
 	static var perso:Sprite;
-	static var star_bonus:Sprite;
+	// static var star_bonus:Sprite;
 	static var finish_stairs:Sprite;
 
 	static var vitesse_perso:Int = PERSO_VITESSE;
@@ -38,8 +38,7 @@ class Main {
 	static var walls:Array<Wall> = [];
 	static var coins:Array<Coin> = [];
 	static var ghosts:Array<Ghost> = [];
-
-	// static var stars:Array<Star> = [];
+	static var stars:Array<Star> = [];
 
 	static function main() {
 		// Preload
@@ -77,29 +76,29 @@ class Main {
 		screen.addChild(perso);
 
 		// STAR
-		star_bonus = Sprite.from('star.png');
-		star_bonus.x = 80;
-		star_bonus.y = 150;
-		var star_bonus_rectangle:Rectangle = new Rectangle(star_bonus.x, star_bonus.y, star_bonus.width, star_bonus.height);
-		other_rectangle.push(star_bonus_rectangle);
-		screen.addChild(star_bonus);
-		/*
-			var star_sprite_template = Sprite.from('star.png');
+		/*star_bonus = Sprite.from('star.png');
+			star_bonus.x = 80;
+			star_bonus.y = 150;
+			var star_bonus_rectangle:Rectangle = new Rectangle(star_bonus.x, star_bonus.y, star_bonus.width, star_bonus.height);
+			other_rectangle.push(star_bonus_rectangle);
+			screen.addChild(star_bonus);
+		 */
+		var star_sprite_template = Sprite.from('star.png');
 
-			for (star_n in 0...NUM_STARS) {
-				var star_x = Std.random(ECRAN_LARGE - Std.int(star_sprite_template.width));
-				var star_y = Std.random(ECRAN_HAUT - Std.int(star_sprite_template.height));
-				var star = new Star(star_x, star_y);
-				var star_rectangle:Rectangle = star.getBounds();
-				if (has_no_superposition(star_rectangle, stars.map(s -> s.getBounds()))
-					&& has_no_superposition(star_rectangle, walls.map(w -> w.getBounds()))
-					&& has_no_superposition(star_rectangle, other_rectangle)) {
-					star.addToStage(screen);
+		for (star_n in 0...NUM_STARS) {
+			var star_x = Std.random(ECRAN_LARGE - Std.int(star_sprite_template.width));
+			var star_y = Std.random(ECRAN_HAUT - Std.int(star_sprite_template.height));
+			var star = new Star(star_x, star_y);
+			var star_rectangle:Rectangle = star.getBounds();
+			if (has_no_superposition(star_rectangle, stars.map(s -> s.getBounds()))
+				&& has_no_superposition(star_rectangle, walls.map(w -> w.getBounds()))
+				&& has_no_superposition(star_rectangle, other_rectangle)) {
+				star.addToStage(screen);
 
-					stars.push(star);
-					other_rectangle.push(star_rectangle);
-				}
-		}*/
+				stars.push(star);
+				other_rectangle.push(star_rectangle);
+			}
+		}
 
 		// GHOST
 
@@ -303,7 +302,7 @@ class Main {
 		var vitesse_y_perso;
 
 		var perso_rectangle:Rectangle = new Rectangle(perso.x, perso.y, perso.width, perso.height);
-		var star_bonus_rectangle:Rectangle = new Rectangle(star_bonus.x, star_bonus.y, star_bonus.width, star_bonus.height);
+		// var star_bonus_rectangle:Rectangle = new Rectangle(star_bonus.x, star_bonus.y, star_bonus.width, star_bonus.height);
 		var finish_stairs_rectangle:Rectangle = new Rectangle(finish_stairs.x, finish_stairs.y, finish_stairs.width, finish_stairs.height);
 
 		// LES DEPLACEMENTS
@@ -375,32 +374,26 @@ class Main {
 
 		// STAR FOR FAST SPEED
 
-		if (collision_point(perso_rectangle, star_bonus_rectangle) && star_bonus.visible) {
-			vitesse_perso = PERSO_VITESSE_PLUS;
-			trace('BONUS VITESSE');
-			star_bonus.visible = false;
-			save_time = time;
+		// Pour chaque star dans le tableau stars
+		for (star in stars) {
+			// Si ça collisionne avec le personnage
+			if (star.isTakable() && collision_point(star.getBounds(), perso_rectangle)) {
+				// Le personnage accélère.
+				save_time = time;
+				vitesse_perso = PERSO_VITESSE_PLUS;
+				trace('BONUS VITESSE');
+				// l'étoile n'est plus visible et plus collisionable
+				star.take();
+			}
+			// si le personnage est rapide depuis un certain delay
+			if (vitesse_perso == PERSO_VITESSE_PLUS && save_time + (DELAY_SPEED_BONUS_SECOND * 1000) < time) {
+				// le personnage reprend sa vitesse normal
+				vitesse_perso = PERSO_VITESSE;
+				trace('Fin du bonus');
+				// l'étoile est à nouveau visible et collisonnable
+				star.untake();
+			}
 		}
-		if (vitesse_perso == PERSO_VITESSE_PLUS && save_time + (DELAY_SPEED_BONUS_SECOND * 1000) < time) {
-			vitesse_perso = PERSO_VITESSE;
-			star_bonus.visible = true;
-			trace('Fin du bonus');
-		}
-		/*
-			// Pour chaque star dans le tableau stars
-			for (star in stars) {
-				star.update(time);
-				// Si ça collisionne avec le personnage
-				if (star.isTakable() && collision_point(star.getBounds(), perso_rectangle)) {
-					// Le personnage accélère pendant 5 secondes
-					vitesse_perso = PERSO_VITESSE_PLUS;
-					trace('BONUS VITESSE');
-				}
-				if (vitesse_perso == PERSO_VITESSE_PLUS && save_time + (DELAY_SPEED_BONUS_SECOND * 1000) < time) {
-					vitesse_perso = PERSO_VITESSE;
-					trace('Fin du bonus');
-				}
-		}*/
 
 		// STAIRS FOR FINISH
 		if (collision_point(finish_stairs_rectangle, perso_rectangle)) {
