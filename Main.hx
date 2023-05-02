@@ -22,15 +22,14 @@ class Main {
 	static inline var NUM_WALLS:Int = 50;
 	static inline var NUM_GHOSTS:Int = 3;
 	static inline var NUM_STARS:Int = 1;
+
 	static inline var DELAY_SPEED_BONUS_SECOND:Int = 5;
 
 	static var screen:Sprite;
 
 	static var perso:Sprite;
-	// static var star_bonus:Sprite;
-	static var finish_stairs:Sprite;
-
 	static var vitesse_perso:Int = PERSO_VITESSE;
+
 	static var save_time:Float = 0;
 
 	static var other_rectangle:Array<Rectangle> = [];
@@ -39,6 +38,7 @@ class Main {
 	static var coins:Array<Coin> = [];
 	static var ghosts:Array<Ghost> = [];
 	static var stars:Array<Star> = [];
+	static var stairs:Stairs;
 
 	static function main() {
 		// Preload
@@ -61,13 +61,6 @@ class Main {
 		screen = new Sprite();
 		app.stage.addChild(screen);
 
-		finish_stairs = Sprite.from('stairs.png');
-		finish_stairs.x = (ECRAN_LARGE - finish_stairs.width);
-		finish_stairs.y = (ECRAN_HAUT - finish_stairs.height);
-		var finish_stairs_rectangle:Rectangle = new Rectangle(finish_stairs.x, finish_stairs.y, finish_stairs.width, finish_stairs.height);
-		other_rectangle.push(finish_stairs_rectangle);
-		screen.addChild(finish_stairs);
-
 		perso = Sprite.from('perso.png');
 		perso.x = 50;
 		perso.y = 50;
@@ -75,14 +68,22 @@ class Main {
 		other_rectangle.push(perso_rectangle);
 		screen.addChild(perso);
 
+		// STAIR
+
+		var stairs_sprite_template = Sprite.from('stairs.png');
+		var stairs_x = (ECRAN_LARGE - Std.int(stairs_sprite_template.width));
+		var stairs_y = (ECRAN_HAUT - Std.int(stairs_sprite_template.height));
+		stairs = new Stairs(stairs_x, stairs_y);
+		var stairs_rectangle:Rectangle = stairs.getBounds();
+		if (has_no_superposition(stairs_rectangle, walls.map(w -> w.getBounds()))
+			&& has_no_superposition(stairs_rectangle, other_rectangle)) {
+			stairs.addToStage(screen);
+
+			other_rectangle.push(stairs_rectangle);
+		}
+
 		// STAR
-		/*star_bonus = Sprite.from('star.png');
-			star_bonus.x = 80;
-			star_bonus.y = 150;
-			var star_bonus_rectangle:Rectangle = new Rectangle(star_bonus.x, star_bonus.y, star_bonus.width, star_bonus.height);
-			other_rectangle.push(star_bonus_rectangle);
-			screen.addChild(star_bonus);
-		 */
+
 		var star_sprite_template = Sprite.from('star.png');
 
 		for (star_n in 0...NUM_STARS) {
@@ -90,18 +91,15 @@ class Main {
 			var star_y = Std.random(ECRAN_HAUT - Std.int(star_sprite_template.height));
 			var star = new Star(star_x, star_y);
 			var star_rectangle:Rectangle = star.getBounds();
-			if (has_no_superposition(star_rectangle, stars.map(s -> s.getBounds()))
-				&& has_no_superposition(star_rectangle, walls.map(w -> w.getBounds()))
+
+			if (has_no_superposition(star_rectangle, walls.map(w -> w.getBounds()))
 				&& has_no_superposition(star_rectangle, other_rectangle)) {
 				star.addToStage(screen);
-
 				stars.push(star);
 				other_rectangle.push(star_rectangle);
 			}
 		}
-
 		// GHOST
-
 		var ghost_sprite_template = Sprite.from('ghost.png');
 
 		for (ghost_n in 0...NUM_GHOSTS) {
@@ -109,18 +107,16 @@ class Main {
 			var ghost_y = Std.random(ECRAN_HAUT - Std.int(ghost_sprite_template.height));
 			var ghost = new Ghost(ghost_x, ghost_y);
 			var ghost_rectangle:Rectangle = ghost.getBounds();
+
 			if (has_no_superposition(ghost_rectangle, ghosts.map(g -> g.getBounds()))
 				&& has_no_superposition(ghost_rectangle, walls.map(w -> w.getBounds()))
 				&& has_no_superposition(ghost_rectangle, other_rectangle)) {
 				ghost.addToStage(screen);
-
 				ghosts.push(ghost);
 				other_rectangle.push(ghost_rectangle);
 			}
 		}
-
 		// MURS
-
 		var wall_sprite_template = Sprite.from('wall.jpeg');
 
 		for (wall_n in 0...NUM_WALLS) {
@@ -128,16 +124,14 @@ class Main {
 			var wall_y = Std.random(ECRAN_HAUT - Std.int(wall_sprite_template.height));
 			var wall = new Wall(wall_x, wall_y);
 			var wall_rectangle:Rectangle = wall.getBounds();
+
 			if (has_no_superposition(wall_rectangle, walls.map(w -> w.getBounds()))
 				&& has_no_superposition(wall_rectangle, other_rectangle)) {
 				wall.addToStage(screen);
-
 				walls.push(wall);
 			}
 		}
-
 		// MURAILLE DU HAUT
-
 		var wall_x = -(ECRAN_LARGE);
 		var wall_y = -(ECRAN_HAUT);
 		var wall = new Wall(wall_x, wall_y);
@@ -146,11 +140,11 @@ class Main {
 			if (wall_x < ((ECRAN_LARGE * 2) - Std.int(wall_sprite_template.width))) {
 				wall_x += 30;
 				var wall = new Wall(wall_x, wall_y);
+
 				wall.addToStage(screen);
 				walls.push(wall);
 			}
 		}
-
 		// MURAILLE DU BAS
 		var wall_x = -(ECRAN_LARGE);
 		var wall_y = ((ECRAN_HAUT * 2) - Std.int(wall_sprite_template.height));
@@ -160,11 +154,11 @@ class Main {
 			if (wall_x < ((ECRAN_LARGE * 2) - Std.int(wall_sprite_template.width))) {
 				wall_x += 30;
 				var wall = new Wall(wall_x, wall_y);
+
 				wall.addToStage(screen);
 				walls.push(wall);
 			}
 		}
-
 		// MURAILLE DE GAUCHE
 		var wall_x = -(ECRAN_LARGE);
 		var wall_y = -(ECRAN_HAUT);
@@ -174,11 +168,11 @@ class Main {
 			if (wall_y < ((ECRAN_HAUT * 2) - Std.int(wall_sprite_template.height))) {
 				wall_y += 30;
 				var wall = new Wall(wall_x, wall_y);
+
 				wall.addToStage(screen);
 				walls.push(wall);
 			}
 		}
-
 		// MURAILLE DE DROITE
 		var wall_x = ((ECRAN_LARGE * 2) - Std.int(wall_sprite_template.width));
 		var wall_y = -(ECRAN_HAUT);
@@ -188,13 +182,12 @@ class Main {
 			if (wall_y < ((ECRAN_HAUT * 2) - Std.int(wall_sprite_template.height))) {
 				wall_y += 30;
 				var wall = new Wall(wall_x, wall_y);
+
 				wall.addToStage(screen);
 				walls.push(wall);
 			}
 		}
-
 		// COINS
-
 		var coin_sprite_template = Sprite.from('coin.png');
 
 		for (coin_n in 0...NUM_COINS) {
@@ -206,14 +199,11 @@ class Main {
 				&& has_no_superposition(coin_rectangle, walls.map(w -> w.getBounds()))
 				&& has_no_superposition(coin_rectangle, other_rectangle)) {
 				coin.addToStage(screen);
-
 				coins.push(coin);
 			}
 		}
-
 		trace('Nombre de coins affichés ${coins.length}');
 		trace('Nombre de murs affichés ${walls.length}');
-
 		Browser.window.requestAnimationFrame(update);
 	}
 
@@ -273,15 +263,19 @@ class Main {
 
 	static function collision_point(object_rect:Rectangle, perso_rect:Rectangle) {
 		if ((perso_rect.x + perso_rect.width) < object_rect.x) { // a gauche de l'objet
+
 			return false;
 		}
 		if (perso_rect.x > (object_rect.x + object_rect.width)) { // a droite de l'objet
+
 			return false;
 		}
 		if ((perso_rect.y + perso_rect.height) < object_rect.y) { // en haut de l'objet
+
 			return false;
 		}
 		if (perso_rect.y > (object_rect.y + object_rect.height)) { // en bas de l'objet
+
 			return false;
 		}
 
@@ -302,8 +296,6 @@ class Main {
 		var vitesse_y_perso;
 
 		var perso_rectangle:Rectangle = new Rectangle(perso.x, perso.y, perso.width, perso.height);
-		// var star_bonus_rectangle:Rectangle = new Rectangle(star_bonus.x, star_bonus.y, star_bonus.width, star_bonus.height);
-		var finish_stairs_rectangle:Rectangle = new Rectangle(finish_stairs.x, finish_stairs.y, finish_stairs.width, finish_stairs.height);
 
 		// LES DEPLACEMENTS
 
@@ -396,9 +388,11 @@ class Main {
 		}
 
 		// STAIRS FOR FINISH
-		if (collision_point(finish_stairs_rectangle, perso_rectangle)) {
+
+		if (collision_point(perso_rectangle, (stairs.getBounds()))) {
 			finish();
 		}
+
 		// SUIVIE DE LECRAN
 		if (edge_of_the_screen(perso_rectangle)) {
 			move_screen(perso_rectangle);
@@ -411,8 +405,8 @@ class Main {
 		if (coins.exists(c -> return !c.isTaken()))
 			return;
 
-		perso.x = finish_stairs.x;
-		perso.y = finish_stairs.y;
+		perso.x = stairs.getX();
+		perso.y = stairs.getY();
 		vitesse_perso = PERSO_STOP;
 		trace('Gagné !!!!');
 	}
