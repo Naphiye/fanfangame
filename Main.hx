@@ -11,7 +11,7 @@ using Lambda;
 class Main {
 	static inline var ECRAN_LARGE:Int = 1024;
 	static inline var ECRAN_HAUT:Int = 768;
-	static inline var PERSO_VITESSE:Int = 8;
+	static inline var PERSO_VITESSE:Int = 7;
 	static inline var PERSO_VITESSE_PLUS:Int = PERSO_VITESSE * 2;
 	static inline var PERSO_STOP:Int = 0;
 	static inline var PERSO_DEPART_X:Int = 50;
