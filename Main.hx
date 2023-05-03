@@ -1,5 +1,3 @@
-import pixi.core.renderers.webgl.State;
-import js.html.Console;
 import js.lib.Promise;
 import pixi.core.textures.Texture;
 import pixi.core.math.shapes.Rectangle;
@@ -27,9 +25,9 @@ class Main {
 
 	static var screen:Sprite;
 
-	static var perso:Sprite;
-	static var vitesse_perso:Int = PERSO_VITESSE;
+	static var perso:Perso;
 
+	static var vitesse_perso:Int = PERSO_VITESSE;
 	static var save_time:Float = 0;
 
 	static var other_rectangle:Array<Rectangle> = [];
@@ -60,13 +58,14 @@ class Main {
 
 		screen = new Sprite();
 		app.stage.addChild(screen);
+		// PERSO
 
-		perso = Sprite.from('perso.png');
-		perso.x = 50;
-		perso.y = 50;
-		var perso_rectangle:Rectangle = new Rectangle(perso.x, perso.y, perso.width, perso.height);
+		var perso_x = 50;
+		var perso_y = 50;
+		perso = new Perso(perso_x, perso_y);
+		var perso_rectangle:Rectangle = perso.getBounds();
 		other_rectangle.push(perso_rectangle);
-		screen.addChild(perso);
+		perso.addToStage(screen);
 
 		// STAIR
 
@@ -292,10 +291,9 @@ class Main {
 	}
 
 	static function update(time:Float) {
+		var perso_sprite_template = Sprite.from('perso.png');
 		var vitesse_x_perso;
 		var vitesse_y_perso;
-
-		var perso_rectangle:Rectangle = new Rectangle(perso.x, perso.y, perso.width, perso.height);
 
 		// LES DEPLACEMENTS
 
@@ -315,27 +313,29 @@ class Main {
 			vitesse_y_perso = 0;
 		}
 
-		var futur_x_perso = perso.x + vitesse_x_perso;
-		var futur_y_perso = perso.y + vitesse_y_perso;
-		var futur_perso_rectangle:Rectangle = new Rectangle(futur_x_perso, futur_y_perso, perso.width, perso.height);
+		var futur_x_perso = perso.getX() + vitesse_x_perso;
+		var futur_y_perso = perso.getY() + vitesse_y_perso;
+		var futur_perso_rectangle:Rectangle = new Rectangle(futur_x_perso, futur_y_perso, perso_sprite_template.width, perso_sprite_template.height);
 
 		if (moving_ok(walls, futur_perso_rectangle)) {
-			perso.x = futur_x_perso;
-			perso.y = futur_y_perso;
+			perso.changeX(futur_x_perso);
+			perso.changeY(futur_y_perso);
 		} else {
 			// DEPLACEMENTS DIAGONALES
 			if (vitesse_x_perso != 0 && vitesse_y_perso != 0) {
 				// déplacement diagonale
 
 				// est ce que je peux me déplacer à l'horizontale
-				var futur_perso_rectangle_horizontale:Rectangle = new Rectangle(futur_x_perso, perso.y, perso.width, perso.height);
-				var futur_perso_rectangle_verticale:Rectangle = new Rectangle(perso.x, futur_y_perso, perso.width, perso.height);
+				var futur_perso_rectangle_horizontale:Rectangle = new Rectangle(futur_x_perso, perso.getY(), perso_sprite_template.width,
+					perso_sprite_template.height);
+				var futur_perso_rectangle_verticale:Rectangle = new Rectangle(perso.getX(), futur_y_perso, perso_sprite_template.width,
+					perso_sprite_template.height);
 				if (moving_ok(walls, futur_perso_rectangle_horizontale)) {
-					perso.x = futur_x_perso;
+					perso.changeX(futur_x_perso);
 				}
 				// sinon est ce que je peux me deplacer à la verticale
 				else if (moving_ok(walls, futur_perso_rectangle_verticale)) {
-					perso.y = futur_y_perso;
+					perso.changeY(futur_y_perso);
 				}
 			}
 		}
@@ -347,7 +347,7 @@ class Main {
 		for (coin in coins) {
 			coin.update(time);
 			// Si ça collisionne avec le personnage
-			if (coin.isTakable() && collision_point(coin.getBounds(), perso_rectangle)) {
+			if (coin.isTakable() && collision_point(coin.getBounds(), perso.getBounds())) {
 				// le coin n'est plus visible et plus collisionnable
 				coin.take();
 			}
@@ -356,10 +356,10 @@ class Main {
 		// Pour chaque ghost dans le tableau ghosts
 		for (ghost in ghosts) {
 			// Si ça collisionne avec le personnage
-			if (ghost.isTakable() && collision_point(ghost.getBounds(), perso_rectangle)) {
+			if (ghost.isTakable() && collision_point(ghost.getBounds(), perso.getBounds())) {
 				// le perso retourne au départ
-				perso.x = PERSO_DEPART_X;
-				perso.y = PERSO_DEPART_Y;
+				perso.changeX(PERSO_DEPART_X);
+				perso.changeY(PERSO_DEPART_Y);
 				trace('perdu !!!! bouhouuu !!OK');
 			}
 		}
@@ -369,7 +369,7 @@ class Main {
 		// Pour chaque star dans le tableau stars
 		for (star in stars) {
 			// Si ça collisionne avec le personnage
-			if (star.isTakable() && collision_point(star.getBounds(), perso_rectangle)) {
+			if (star.isTakable() && collision_point(star.getBounds(), perso.getBounds())) {
 				// Le personnage accélère.
 				save_time = time;
 				vitesse_perso = PERSO_VITESSE_PLUS;
@@ -389,14 +389,15 @@ class Main {
 
 		// STAIRS FOR FINISH
 
-		if (collision_point(perso_rectangle, (stairs.getBounds()))) {
+		if (collision_point(perso.getBounds(), (stairs.getBounds()))) {
 			finish();
 		}
 
 		// SUIVIE DE LECRAN
-		if (edge_of_the_screen(perso_rectangle)) {
-			move_screen(perso_rectangle);
+		if (edge_of_the_screen(perso.getBounds())) {
+			move_screen(perso.getBounds());
 		}
+
 		Browser.window.requestAnimationFrame(update);
 	}
 
@@ -405,8 +406,8 @@ class Main {
 		if (coins.exists(c -> return !c.isTaken()))
 			return;
 
-		perso.x = stairs.getX();
-		perso.y = stairs.getY();
+		perso.changeX(stairs.getX());
+		perso.changeY(stairs.getY());
 		vitesse_perso = PERSO_STOP;
 		trace('Gagné !!!!');
 	}
