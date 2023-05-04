@@ -1,45 +1,35 @@
-import pixi.core.sprites.Sprite;
-import pixi.core.math.shapes.Rectangle;
-
-class Star {
-	var star_sprite:Sprite;
+class Star extends ScreenItem {
 	var star_taken:Bool;
-	var bounds:Rectangle;
+	var took_time:Float;
+
+	static inline var DELAY_SPEED_SECOND:Int = 5;
 
 	public function new(x:Int, y:Int) {
-		star_sprite = Sprite.from('images/star.png');
-		star_sprite.x = x;
-		star_sprite.y = y;
-		bounds = new Rectangle(star_sprite.x, star_sprite.y, star_sprite.width, star_sprite.height);
+		super("images/star.png", x, y);
 
 		star_taken = false;
-	}
-
-	public function getBounds() {
-		return bounds;
 	}
 
 	public function isTaken() {
 		return star_taken;
 	}
 
+	public function isOver(time:Float) {
+		return star_taken && took_time + (DELAY_SPEED_SECOND * 1000) < time;
+	}
+
 	public function isTakable() {
 		return !star_taken;
 	}
 
-	public function addToStage(screen:Sprite) {
-		screen.addChild(star_sprite);
-	}
-
-	public function take() {
-		star_sprite.visible = false;
+	public function take(time:Float) {
+		item_sprite.visible = false;
 		star_taken = true;
+		took_time = time;
 	}
 
 	public function untake() {
-		if (isTaken()) {
-			star_sprite.visible = true;
-			star_taken = false;
-		}
+		item_sprite.visible = true;
+		star_taken = false;
 	}
 }

@@ -19,16 +19,13 @@ class Main {
 	static inline var NUM_COINS:Int = 10;
 	static inline var NUM_WALLS:Int = 50;
 	static inline var NUM_GHOSTS:Int = 3;
-	static inline var NUM_STARS:Int = 1;
-
-	static inline var DELAY_SPEED_BONUS_SECOND:Int = 5;
+	static inline var NUM_STARS:Int = 5;
 
 	static var screen:Sprite;
 
 	static var perso:Perso;
 
 	static var vitesse_perso:Int = PERSO_VITESSE;
-	static var save_time:Float = 0;
 
 	static var other_rectangle:Array<Rectangle> = [];
 
@@ -58,8 +55,8 @@ class Main {
 
 		screen = new Sprite();
 		app.stage.addChild(screen);
-		// PERSO
 
+		// PERSO
 		var perso_x = 50;
 		var perso_y = 50;
 		perso = new Perso(perso_x, perso_y);
@@ -67,8 +64,7 @@ class Main {
 		other_rectangle.push(perso_rectangle);
 		perso.addToStage(screen);
 
-		// STAIR
-
+		// STAIRS
 		var stairs_sprite_template = Sprite.from('images/stairs.png');
 		var stairs_x = (ECRAN_LARGE - Std.int(stairs_sprite_template.width));
 		var stairs_y = (ECRAN_HAUT - Std.int(stairs_sprite_template.height));
@@ -82,7 +78,6 @@ class Main {
 		}
 
 		// STAR
-
 		var star_sprite_template = Sprite.from('images/star.png');
 
 		for (star_n in 0...NUM_STARS) {
@@ -98,6 +93,7 @@ class Main {
 				other_rectangle.push(star_rectangle);
 			}
 		}
+
 		// GHOST
 		var ghost_sprite_template = Sprite.from('images/ghost.png');
 
@@ -186,6 +182,7 @@ class Main {
 				walls.push(wall);
 			}
 		}
+
 		// COINS
 		var coin_sprite_template = Sprite.from('images/coin.png');
 
@@ -371,18 +368,14 @@ class Main {
 			// Si ça collisionne avec le personnage
 			if (star.isTakable() && collision_point(star.getBounds(), perso.getBounds())) {
 				// Le personnage accélère.
-				save_time = time;
 				vitesse_perso = PERSO_VITESSE_PLUS;
-				trace('BONUS VITESSE');
 				// l'étoile n'est plus visible et plus collisionable
-				star.take();
+				star.take(time);
 			}
 			// si le personnage est rapide depuis un certain delay
-			if (vitesse_perso == PERSO_VITESSE_PLUS && save_time + (DELAY_SPEED_BONUS_SECOND * 1000) < time) {
+			if (star.isOver(time)) {
 				// le personnage reprend sa vitesse normal
 				vitesse_perso = PERSO_VITESSE;
-				trace('Fin du bonus');
-				// l'étoile est à nouveau visible et collisonnable
 				star.untake();
 			}
 		}
