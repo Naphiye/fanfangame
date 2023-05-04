@@ -7,7 +7,7 @@ class Star {
 	var bounds:Rectangle;
 
 	public function new(x:Int, y:Int) {
-		star_sprite = Sprite.from('star.png');
+		star_sprite = Sprite.from('images/star.png');
 		star_sprite.x = x;
 		star_sprite.y = y;
 		bounds = new Rectangle(star_sprite.x, star_sprite.y, star_sprite.width, star_sprite.height);

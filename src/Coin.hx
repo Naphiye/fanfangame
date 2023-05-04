@@ -11,7 +11,7 @@ class Coin {
 	var bounds:Rectangle;
 
 	public function new(x:Int, y:Int) {
-		coin_sprite = Sprite.from('coin.png');
+		coin_sprite = Sprite.from('images/coin.png');
 		coin_sprite.x = x;
 		coin_sprite.y = y;
 		bounds = new Rectangle(coin_sprite.x, coin_sprite.y, coin_sprite.width, coin_sprite.height);

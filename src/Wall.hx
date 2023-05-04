@@ -6,7 +6,7 @@ class Wall {
 	var bounds:Rectangle;
 
 	public function new(x:Int, y:Int) {
-		wall_sprite = Sprite.from('wall.jpeg');
+		wall_sprite = Sprite.from('images/wall.jpeg');
 		wall_sprite.x = x;
 		wall_sprite.y = y;
 		bounds = new Rectangle(wall_sprite.x, wall_sprite.y, wall_sprite.width, wall_sprite.height);

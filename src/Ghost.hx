@@ -7,7 +7,7 @@ class Ghost {
 	var bounds:Rectangle;
 
 	public function new(x:Int, y:Int) {
-		ghost_sprite = Sprite.from('ghost.png');
+		ghost_sprite = Sprite.from('images/ghost.png');
 		ghost_sprite.x = x;
 		ghost_sprite.y = y;
 

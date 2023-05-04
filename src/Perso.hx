@@ -7,7 +7,7 @@ class Perso {
 	var bounds:Rectangle;
 
 	public function new(x:Int, y:Int) {
-		perso_sprite = Sprite.from('perso.png');
+		perso_sprite = Sprite.from('images/perso.png');
 		perso_sprite.x = x;
 		perso_sprite.y = y;
 		bounds = new Rectangle(perso_sprite.x, perso_sprite.y, perso_sprite.width, perso_sprite.height);

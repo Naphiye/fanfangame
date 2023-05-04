@@ -40,12 +40,12 @@ class Main {
 
 	static function main() {
 		// Preload
-		var persoProm = Texture.fromURL('perso.png');
-		var murProm = Texture.fromURL('wall.jpeg');
-		var starProm = Texture.fromURL('star.png');
-		var stairsProm = Texture.fromURL('stairs.png');
-		var ghostProm = Texture.fromURL('ghost.png');
-		var coinProm = Texture.fromURL('coin.png');
+		var persoProm = Texture.fromURL('images/perso.png');
+		var murProm = Texture.fromURL('images/wall.jpeg');
+		var starProm = Texture.fromURL('images/star.png');
+		var stairsProm = Texture.fromURL('images/stairs.png');
+		var ghostProm = Texture.fromURL('images/ghost.png');
+		var coinProm = Texture.fromURL('images/coin.png');
 
 		Promise.all([persoProm, murProm, starProm, stairsProm, ghostProm, coinProm]).then(startGame);
 	}
@@ -69,7 +69,7 @@ class Main {
 
 		// STAIR
 
-		var stairs_sprite_template = Sprite.from('stairs.png');
+		var stairs_sprite_template = Sprite.from('images/stairs.png');
 		var stairs_x = (ECRAN_LARGE - Std.int(stairs_sprite_template.width));
 		var stairs_y = (ECRAN_HAUT - Std.int(stairs_sprite_template.height));
 		stairs = new Stairs(stairs_x, stairs_y);
@@ -83,7 +83,7 @@ class Main {
 
 		// STAR
 
-		var star_sprite_template = Sprite.from('star.png');
+		var star_sprite_template = Sprite.from('images/star.png');
 
 		for (star_n in 0...NUM_STARS) {
 			var star_x = Std.random(ECRAN_LARGE - Std.int(star_sprite_template.width));
@@ -99,7 +99,7 @@ class Main {
 			}
 		}
 		// GHOST
-		var ghost_sprite_template = Sprite.from('ghost.png');
+		var ghost_sprite_template = Sprite.from('images/ghost.png');
 
 		for (ghost_n in 0...NUM_GHOSTS) {
 			var ghost_x = Std.random(ECRAN_LARGE - Std.int(ghost_sprite_template.width));
@@ -116,7 +116,7 @@ class Main {
 			}
 		}
 		// MURS
-		var wall_sprite_template = Sprite.from('wall.jpeg');
+		var wall_sprite_template = Sprite.from('images/wall.jpeg');
 
 		for (wall_n in 0...NUM_WALLS) {
 			var wall_x = Std.random(ECRAN_LARGE - Std.int(wall_sprite_template.width));
@@ -187,7 +187,7 @@ class Main {
 			}
 		}
 		// COINS
-		var coin_sprite_template = Sprite.from('coin.png');
+		var coin_sprite_template = Sprite.from('images/coin.png');
 
 		for (coin_n in 0...NUM_COINS) {
 			var coin_x = Std.random(ECRAN_LARGE - Std.int(coin_sprite_template.width));
@@ -291,7 +291,7 @@ class Main {
 	}
 
 	static function update(time:Float) {
-		var perso_sprite_template = Sprite.from('perso.png');
+		var perso_sprite_template = Sprite.from('images/perso.png');
 		var vitesse_x_perso;
 		var vitesse_y_perso;
 
