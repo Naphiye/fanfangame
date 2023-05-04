@@ -1,3 +1,4 @@
+import pixi.core.math.Point;
 import js.lib.Promise;
 import pixi.core.textures.Texture;
 import pixi.core.math.shapes.Rectangle;
@@ -11,7 +12,7 @@ using Lambda;
 class Main {
 	static inline var ECRAN_LARGE:Int = 1024;
 	static inline var ECRAN_HAUT:Int = 768;
-	static inline var PERSO_VITESSE:Int = 7;
+	static inline var PERSO_VITESSE:Int = 3;
 	static inline var PERSO_VITESSE_PLUS:Int = PERSO_VITESSE * 2;
 	static inline var PERSO_STOP:Int = 0;
 	static inline var PERSO_DEPART_X:Int = 50;
@@ -57,8 +58,8 @@ class Main {
 		app.stage.addChild(screen);
 
 		// PERSO
-		var perso_x = 50;
-		var perso_y = 50;
+		var perso_x = 0;
+		var perso_y = 0;
 		perso = new Perso(perso_x, perso_y);
 		var perso_rectangle:Rectangle = perso.getBounds();
 		other_rectangle.push(perso_rectangle);
@@ -114,18 +115,57 @@ class Main {
 		// MURS
 		var wall_sprite_template = Sprite.from('images/wall.jpeg');
 
-		for (wall_n in 0...NUM_WALLS) {
-			var wall_x = Std.random(ECRAN_LARGE - Std.int(wall_sprite_template.width));
-			var wall_y = Std.random(ECRAN_HAUT - Std.int(wall_sprite_template.height));
-			var wall = new Wall(wall_x, wall_y);
-			var wall_rectangle:Rectangle = wall.getBounds();
+		var maze_width = 20;
+		var maze_height = 20;
 
-			if (has_no_superposition(wall_rectangle, walls.map(w -> w.getBounds()))
-				&& has_no_superposition(wall_rectangle, other_rectangle)) {
-				wall.addToStage(screen);
-				walls.push(wall);
+		var maze = new Maze(maze_width, maze_height);
+		var path = maze.generate();
+
+		function sur_path(grille_x:Int, grille_y:Int) {
+			for (p in path) {
+				if (grille_x == p.x && grille_y == p.y) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		for (grille_x in 0...maze_width) {
+			for (grille_y in 0...maze_height) {
+				if (!sur_path(grille_x, grille_y)) {
+					var wall_x = Std.int(grille_x * wall_sprite_template.width);
+					var wall_y = Std.int(grille_y * wall_sprite_template.height);
+					var wall = new Wall(wall_x, wall_y);
+					wall.addToStage(screen);
+					walls.push(wall);
+				}
 			}
 		}
+
+		draw_wall_fence(wall_sprite_template);
+
+		// COINS
+		var coin_sprite_template = Sprite.from('images/coin.png');
+
+		for (coin_n in 0...NUM_COINS) {
+			var coin_x = Std.random(ECRAN_LARGE - Std.int(coin_sprite_template.width));
+			var coin_y = Std.random(ECRAN_HAUT - Std.int(coin_sprite_template.height));
+			var coin = new Coin(coin_x, coin_y);
+			var coin_rectangle:Rectangle = coin.getBounds();
+			if (has_no_superposition(coin_rectangle, coins.map(c -> c.getBounds()))
+				&& has_no_superposition(coin_rectangle, walls.map(w -> w.getBounds()))
+				&& has_no_superposition(coin_rectangle, other_rectangle)) {
+				coin.addToStage(screen);
+				coins.push(coin);
+			}
+		}
+		trace('Nombre de coins affichés ${coins.length}');
+		trace('Nombre de murs affichés ${walls.length}');
+		Browser.window.requestAnimationFrame(update);
+	}
+
+	static function draw_wall_fence(wall_sprite_template:Sprite) {
 		// MURAILLE DU HAUT
 		var wall_x = -(ECRAN_LARGE);
 		var wall_y = -(ECRAN_HAUT);
@@ -182,25 +222,6 @@ class Main {
 				walls.push(wall);
 			}
 		}
-
-		// COINS
-		var coin_sprite_template = Sprite.from('images/coin.png');
-
-		for (coin_n in 0...NUM_COINS) {
-			var coin_x = Std.random(ECRAN_LARGE - Std.int(coin_sprite_template.width));
-			var coin_y = Std.random(ECRAN_HAUT - Std.int(coin_sprite_template.height));
-			var coin = new Coin(coin_x, coin_y);
-			var coin_rectangle:Rectangle = coin.getBounds();
-			if (has_no_superposition(coin_rectangle, coins.map(c -> c.getBounds()))
-				&& has_no_superposition(coin_rectangle, walls.map(w -> w.getBounds()))
-				&& has_no_superposition(coin_rectangle, other_rectangle)) {
-				coin.addToStage(screen);
-				coins.push(coin);
-			}
-		}
-		trace('Nombre de coins affichés ${coins.length}');
-		trace('Nombre de murs affichés ${walls.length}');
-		Browser.window.requestAnimationFrame(update);
 	}
 
 	static function has_no_superposition(object:Rectangle, others:Array<Rectangle>) {
