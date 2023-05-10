@@ -10,4 +10,14 @@ class Stairs extends ScreenItem {
 	public function getY() {
 		return item_sprite.y;
 	}
+
+	public function changeX(change:Float) {
+		item_sprite.x = change;
+		bounds.x = change;
+	}
+
+	public function changeY(change:Float) {
+		item_sprite.y = change;
+		bounds.y = change;
+	}
 }

@@ -46,7 +46,6 @@ class Maze {
 			path.push(new Point(current_point.x, current_point.y));
 
 			move_point(current_point, current_direction);
-
 			path.push(new Point(current_point.x, current_point.y));
 		}
 	}
@@ -63,6 +62,8 @@ class Maze {
 				p.y += 1;
 		}
 	}
+
+	// on test les directions possible
 
 	function random_directions(pt:Point, path:Array<Point>) {
 		var possible_directions = [LEFT, RIGHT, UP, DOWN];
