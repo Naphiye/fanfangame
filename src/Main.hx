@@ -375,6 +375,18 @@ class Main {
 				vitesse_perso = PERSO_VITESSE_PLUS;
 				// l'étoile n'est plus visible et plus collisionable
 				star.take(time);
+				// Informations de l'Acceleration
+				var startext = new pixi.core.text.Text('Accélération !', {
+					fontFamily: 'Verdana',
+					fontSize: 55,
+					fill: 0xc1e8e7,
+					align: 'center',
+				});
+
+				screen.addChild(startext);
+
+				startext.x = -screen.x;
+				startext.y = -screen.y;
 			}
 			// si le personnage est rapide depuis un certain delay
 			if (star.isOver(time)) {
