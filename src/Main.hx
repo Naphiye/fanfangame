@@ -1,8 +1,12 @@
+import js.html.MediaDeviceInfo;
+import js.html.Text;
 import pixi.core.math.Point;
 import js.lib.Promise;
 import pixi.core.textures.Texture;
 import pixi.core.math.shapes.Rectangle;
 import pixi.core.sprites.Sprite;
+import pixi.core.text.Text;
+import pixi.core.text.TextStyle;
 import js.Browser;
 import pixi.core.Application;
 
@@ -17,7 +21,7 @@ class Main {
 	static inline var PERSO_STOP:Int = 0;
 	static inline var PERSO_DEPART_X:Int = 50;
 	static inline var PERSO_DEPART_Y:Int = 50;
-	static inline var NUM_COINS:Int = 1;
+	static inline var NUM_COINS:Int = 0;
 	static inline var NUM_WALLS:Int = 50;
 	static inline var NUM_GHOSTS:Int = 0;
 	static inline var NUM_STARS:Int = 10;
@@ -35,6 +39,8 @@ class Main {
 	static var ghosts:Array<Ghost> = [];
 	static var stars:Array<Star> = [];
 	static var stairs:Stairs;
+
+	static var finish_timer:Float;
 
 	static function main() {
 		// Preload
@@ -184,20 +190,6 @@ class Main {
 				walls.push(wall);
 			}
 		}
-		// MURAILLE DU BAS
-		/*var wall_x = 0;
-			var wall_y = ((ECRAN_HAUT * 3) - Std.int(wall_sprite_template.height));
-			var wall = new Wall(wall_x, wall_y);
-			wall.addToStage(screen);
-			for (i in 0...103) {
-				if (wall_x < ((ECRAN_LARGE * 3) - Std.int(wall_sprite_template.width))) {
-					wall_x += 30;
-					var wall = new Wall(wall_x, wall_y);
-
-					wall.addToStage(screen);
-					walls.push(wall);
-				}
-		}*/
 
 		// MURAILLE DE GAUCHE
 		var wall_x = -60;
@@ -213,22 +205,6 @@ class Main {
 				walls.push(wall);
 			}
 		}
-
-		/*
-			// MURAILLE DE DROITE
-			var wall_x = ((ECRAN_LARGE * 3) - Std.int(wall_sprite_template.width));
-			var wall_y = 0;
-			var wall = new Wall(wall_x, wall_y);
-			wall.addToStage(screen);
-			for (i in 0...77) {
-				if (wall_y < ((ECRAN_HAUT * 3) - Std.int(wall_sprite_template.height))) {
-					wall_y += 30;
-					var wall = new Wall(wall_x, wall_y);
-
-					wall.addToStage(screen);
-					walls.push(wall);
-				}
-		}*/
 	}
 
 	static function has_no_superposition(object:Rectangle, others:Array<Rectangle>) {
@@ -411,7 +387,12 @@ class Main {
 		// STAIRS FOR FINISH
 
 		if (collision_point(perso.getBounds(), (stairs.getBounds()))) {
+			finish_timer = (time / 1000);
+
 			finish();
+			if (perso.getX() == stairs.getX() && perso.getY() == stairs.getY()) {
+				return;
+			}
 		}
 
 		// SUIVIE DE LECRAN
@@ -431,6 +412,16 @@ class Main {
 		perso.changeY(stairs.getY());
 		vitesse_perso = PERSO_STOP;
 
-		trace('Gagné !!!!');
+		var finishtext = new pixi.core.text.Text('Labyrinthe réalisé en  ${Std.int(finish_timer)} secondes!', {
+			fontFamily: 'Verdana',
+			fontSize: 55,
+			fill: 0xead3eb,
+			align: 'center',
+		});
+
+		screen.addChild(finishtext);
+
+		finishtext.x = -screen.x;
+		finishtext.y = -screen.y;
 	}
 }
